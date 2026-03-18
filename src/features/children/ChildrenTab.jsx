@@ -1,9 +1,12 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useMemo } from "react";
 import { db, getAgeGroupFromDOB, calcAgeFull } from "../../services/db";
-import Modal from "../../components/Modal";
-import ConfirmModal from "../../components/ConfirmModal";
+import { Badge } from "../../components/common";
+import Modal from "../../components/common/Modal";
+import ConfirmModal from "../../components/common/ConfirmModal";
 import VaccinationCard from "./VaccinationCard";
+import { useToast } from "../../contexts/ToastContext";
+
 
 const AGE_GROUP_LABELS = {
   under1Month: "< 1 Month",
@@ -103,7 +106,9 @@ function VaccDot({ done }) {
 
 const allVaccFields = VACC_GROUPS.flatMap((g) => g.fields.map((f) => f[0]));
 
-export default function ChildrenTab({ data, filterGroup, onRefresh, onToast }) {
+export default function ChildrenTab({ data, filterGroup, onRefresh }) {
+  const { showToast } = useToast();
+
   const [search, setSearch] = useState("");
   const [modal, setModal] = useState(null);
   const [form, setForm] = useState(EMPTY);
@@ -135,21 +140,23 @@ export default function ChildrenTab({ data, filterGroup, onRefresh, onToast }) {
 
   function handleSave() {
     if (!form.name?.trim()) {
-      onToast("Child name required", "error");
+      showToast("Child name required", "error");
       return;
     }
     if (!form.hhNo) {
-      onToast("House No. is required", "error");
+      showToast("House No. is required", "error");
       return;
     }
+
     db.saveChild(form);
     onRefresh();
     setModal(null);
-    onToast(
+    showToast(
       modal === "add"
         ? "Child added! Main sheet updated ⟳"
         : "Updated! Main sheet updated ⟳",
     );
+
   }
 
   function handleDelete(c) {
@@ -161,7 +168,8 @@ export default function ChildrenTab({ data, filterGroup, onRefresh, onToast }) {
     db.deleteChild(confirmDelete._id);
     onRefresh();
     setConfirmDelete(null);
-    onToast("Record moved to Recycle Bin ⟳", "error");
+    showToast("Record moved to Recycle Bin ⟳", "error");
+
   }
 
   function CF(key, label, type = "text") {
@@ -262,9 +270,9 @@ export default function ChildrenTab({ data, filterGroup, onRefresh, onToast }) {
                   <td className="mono">{calcAgeFull(c.dob)}</td>
                   <td className="center">{c.gender}</td>
                   <td>
-                    <span className={`badge-${col}`}>
+                    <Badge variant={col}>
                       {AGE_GROUP_LABELS[grp] || "—"}
-                    </span>
+                    </Badge>
                   </td>
                   <td>{c.guardianName}</td>
                   <td>

@@ -1,8 +1,9 @@
 import { useState, useMemo } from "react";
 import { db, calcAgeYears } from "../../services/db";
-import Modal from "../../components/Modal";
-import ConfirmModal from "../../components/ConfirmModal";
-import { SearchToolbar } from "../../components/common";
+import Modal from "../../components/common/Modal";
+import ConfirmModal from "../../components/common/ConfirmModal";
+import { SearchToolbar, Badge } from "../../components/common";
+import { useToast } from "../../contexts/ToastContext";
 
 const EMPTY = {
   hhNo: "",
@@ -42,7 +43,8 @@ function calcTrimester(lmp) {
   return { label: "Overdue?", color: "#dc2626" };
 }
 
-export default function PregnantTab({ data, onRefresh, onToast }) {
+export default function PregnantTab({ data, onRefresh }) {
+  const { showToast } = useToast();
   const [search, setSearch] = useState("");
   const [modal, setModal] = useState(null);
   const [form, setForm] = useState(EMPTY);
@@ -73,21 +75,17 @@ export default function PregnantTab({ data, onRefresh, onToast }) {
 
   function handleSave() {
     if (!form.name?.trim()) {
-      onToast("Name is required", "error");
+      showToast("Name is required", "error");
       return;
     }
     if (!form.hhNo) {
-      onToast("House No. is required", "error");
+      showToast("House No. is required", "error");
       return;
     }
     db.savePregnant(form);
     onRefresh();
-    // Keep internal state updated if we don't close modal immediately
-    if (modal === "edit") {
-      // Refresh current form to match saved state if needed
-    }
     setModal(null);
-    onToast(
+    showToast(
       modal === "add"
         ? "Record added! Main sheet updated ⟳"
         : "Record updated! Main sheet updated ⟳",
@@ -104,7 +102,7 @@ export default function PregnantTab({ data, onRefresh, onToast }) {
     db.deletePregnant(confirmDelete._id);
     onRefresh();
     setConfirmDelete(null);
-    onToast("Record moved to Recycle Bin ⟳", "error");
+    showToast("Record moved to Recycle Bin ⟳", "error");
   }
 
   function handlePrint() {
@@ -194,23 +192,11 @@ export default function PregnantTab({ data, onRefresh, onToast }) {
                 </div>
                 <div style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
                   {tri && (
-                    <span
-                      className="badge"
-                      style={{
-                        backgroundColor: tri.color + "15",
-                        color: tri.color,
-                        borderColor: tri.color + "30",
-                        borderStyle: "solid",
-                        borderWidth: "1px",
-                        padding: "2px 8px",
-                        borderRadius: "6px",
-                        fontSize: "11px",
-                        fontWeight: "600",
-                        whiteSpace: "nowrap"
-                      }}
+                    <Badge 
+                      variant={tri.color === "#16a34a" ? "green" : tri.color === "#0891b2" ? "blue" : tri.color === "#d97706" ? "amber" : "red"}
                     >
                       {tri.label}
-                    </span>
+                    </Badge>
                   )}
                   <button 
                     className="btn-icon btn-del" 

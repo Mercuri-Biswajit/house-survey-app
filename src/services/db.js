@@ -163,6 +163,7 @@ function migrateDeliveredPregnant() {
         DPT_booster: null,
         JE2: null,
         VitA2: null,
+        createdAt: new Date().toISOString(),
       };
       children.push(newChild);
     });
@@ -254,7 +255,11 @@ export const db = {
             }
           });
         }
-        households.push({ ...item, _internalId: Date.now() + Math.random() });
+          households.push({
+            ...item,
+            _internalId: Date.now() + Math.random(),
+            createdAt: item.createdAt || new Date().toISOString(),
+          });
       } else {
         // Existing household changing its number.
         const oldId = Number(households[oldIdx].id);
@@ -351,7 +356,12 @@ export const db = {
     const all = get(KEYS.pregnant);
     const idx = all.findIndex((p) => String(p._id) === String(item._id));
     if (idx >= 0) all[idx] = item;
-    else all.push({ ...item, _id: item._id || Date.now() });
+    else
+      all.push({
+        ...item,
+        _id: item._id || Date.now(),
+        createdAt: item.createdAt || new Date().toISOString(),
+      });
     set(KEYS.pregnant, all);
     syncAllHouseholds();
   },
@@ -384,7 +394,12 @@ export const db = {
     const all = get(KEYS.children);
     const idx = all.findIndex((c) => String(c._id) === String(item._id));
     if (idx >= 0) all[idx] = item;
-    else all.push({ ...item, _id: item._id || Date.now() });
+    else
+      all.push({
+        ...item,
+        _id: item._id || Date.now(),
+        createdAt: item.createdAt || new Date().toISOString(),
+      });
     set(KEYS.children, all);
     syncAllHouseholds();
   },
