@@ -1,0 +1,38 @@
+:root {
+  --bg: #f0f4f0;
+  --bg2: #ffffff;
+  --sidebar: #0f2318;
+  --sidebar-hover: #1a3d26;
+  --sidebar-active: #16a34a;
+  --text: #0f2318;
+  --text2: #4b6358;
+  --text3: #94a89e;
+  --green: #16a34a;
+  --green-light: #dcfce7;
+  --teal: #0891b2;
+  --teal-light: #e0f7fa;
+  --pink: #be185d;
+  --pink-light: #fce7f3;
+  --amber: #d97706;
+  --amber-light: #fef3c7;
+  --red: #dc2626;
+  --red-light: #fee2e2;
+  --purple: #7c3aed;
+  --border: #d1e8d9;
+  --shadow: 0 2px 8px rgba(15,35,24,.08);
+  --shadow-lg: 0 8px 32px rgba(15,35,24,.12);
+  --radius: 8px;
+  --font: 'Sora', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+  
+  /* Additional variables from later edits */
+  --pink-primary: #be185d;
+  --border-color: #d1e8d9;
+  --text-dim: #94a89e;
+  --text-main: #0f2318;
+  --bg-dim: #f0f4f0;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body, #root { height: 100%; font-family: var(--font); }

@@ -1,0 +1,12 @@
+@media print {
+  .no-print { display: none !important; }
+  .printable-area { display: block !important; }
+  .modal-overlay { background: white !important; padding: 0 !important; }
+  .modal-container { box-shadow: none !important; width: 100% !important; max-width: none !important; }
+  .report-date-box { border: 1px solid #ddd !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .highlight-edd { border-left: 4px solid var(--pink-primary) !important; }
+  
+  body * { visibility: hidden; }
+  .printable-area, .printable-area * { visibility: visible; }
+  .printable-area { position: absolute; left: 0; top: 0; width: 100%; padding: 0; }
+}
