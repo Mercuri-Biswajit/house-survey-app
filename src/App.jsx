@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars */
+ 
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAppState } from "./hooks/useAppState";
 import MainLayout from "./components/layout/MainLayout";
