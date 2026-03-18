@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 
 import { useState, useEffect, useMemo } from "react";
@@ -6,6 +7,8 @@ import { db } from "./services/db";
 import { exportToExcel, exportToPDF } from "./utils/exportUtils";
 import Modal from "./components/Modal";
 import AppRoutes, { NAV_ITEMS } from "./routes/AppRoutes";
+import Sidebar from "./components/Sidebar";
+import Header from "./components/Header";
 import defaultAreaConfig from "./config/areaConfig";
 import "./styles/variables.css";
 import "./styles/layout.css";
@@ -24,19 +27,13 @@ export default function App() {
   const [pregnant, setPregnant] = useState([]);
   const [children, setChildren] = useState([]);
   const [recycleBin, setRecycleBin] = useState([]);
-  const [exportMenu, setExportMenu] = useState(false);
   const [toast, setToast] = useState(null);
-  const [showSettings, setShowSettings] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [area, setArea] = useState(() => {
     const saved = localStorage.getItem("survey_area");
     return saved ? JSON.parse(saved) : defaultAreaConfig;
   });
-
-  const handleSaveArea = (newArea) => {
-    setArea(newArea);
-    localStorage.setItem("survey_area", JSON.stringify(newArea));
-    setShowSettings(false);
-  };
 
   useEffect(() => {
     db.init();
@@ -79,151 +76,71 @@ export default function App() {
     };
   }, [households, pregnant, children]);
 
+  const todayStats = useMemo(() => {
+    const today = new Date().toISOString().split("T")[0];
+    const isToday = (d) => d && d.startsWith(today);
+    return {
+      surveys: households.filter((h) => isToday(h.createdAt)).length,
+      pregnant: pregnant.filter((p) => isToday(p.createdAt)).length,
+      children: children.filter((c) => isToday(c.createdAt)).length,
+    };
+  }, [households, pregnant, children]);
+
+  const filteredData = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return { households, pregnant, children };
+
+    const match = (val) =>
+      String(val || "")
+        .toLowerCase()
+        .includes(q);
+
+    return {
+      households: households.filter(
+        (h) => match(h.id) || match(h.headName) || match(h.mobile),
+      ),
+      pregnant: pregnant.filter(
+        (p) => match(p.hhNo) || match(p.name) || match(p.mobile),
+      ),
+      children: children.filter(
+        (c) => match(c.hhNo) || match(c.name) || match(c.guardianName),
+      ),
+    };
+  }, [searchQuery, households, pregnant, children]);
+
   const currentLabel = NAV_ITEMS.find((n) => n.id === activeTab)?.label || "";
 
   return (
-    <div className="app">
-      <aside className="sidebar">
-        <div className="sidebar-brand">
-          <div className="brand-icon">SC</div>
-          <div className="brand-text">
-            <span className="brand-title">SurveyPulse</span>
-            <span className="brand-sub">Form SC-3 · Khoksa</span>
-          </div>
-        </div>
-
-        <nav className="sidebar-nav">
-          {NAV_ITEMS.map((n) => (
-            <button
-              key={n.id}
-              className={`nav-item ${activeTab === n.id ? "active" : ""}`}
-              onClick={() => navigate(`/${n.id}`)}
-            >
-              <span className="nav-icon">{n.icon}</span>
-              <span>{n.label}</span>
-              {n.badgeKey && stats[n.badgeKey] !== undefined && (
-                <span className={`nav-badge ${n.badgeColor || ""}`}>
-                  {stats[n.badgeKey]}
-                </span>
-              )}
-            </button>
-          ))}
-        </nav>
-
-        <div className="sidebar-footer">
-          <div className="meta-line">ASHA: Jaba Rani Barman</div>
-          <div className="meta-line">ANM: Beauty Roy</div>
-          <div className="meta-line">Village: Kokra, Raiganj</div>
-        </div>
-      </aside>
+    <div className={`app ${!isSidebarOpen ? "sidebar-collapsed" : ""}`}>
+      <Sidebar
+        activeTab={activeTab}
+        navigate={navigate}
+        stats={stats}
+        area={area}
+        isOpen={isSidebarOpen}
+        toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+        todayStats={todayStats}
+      />
 
       <main className="main">
-        <header className="topbar">
-          <div className="topbar-left">
-            <h1 className="page-title">{currentLabel}</h1>
-            <span className="page-subtitle">
-              {area.district} • {area.block} • {area.gp} • {area.village}
-            </span>
-          </div>
-          <div className="topbar-right">
-            <button
-              className="btn-icon"
-              style={{ marginRight: "8px" }}
-              onClick={() => setShowSettings(true)}
-              title="Area Settings"
-            >
-              ⚙️
-            </button>
-            <div className="export-wrap">
-              <button
-                className="btn-export"
-                onClick={() => setExportMenu((v) => !v)}
-              >
-                <span>⬇</span> Export Data
-              </button>
-              {exportMenu && (
-                <div
-                  className="export-menu"
-                  onMouseLeave={() => setExportMenu(false)}
-                >
-                  <div className="export-section-title">📊 Excel Reports</div>
-                  <button
-                    onClick={() => {
-                      exportToExcel(households, pregnant, children, area);
-                      showToast("Excel exported!");
-                      setExportMenu(false);
-                    }}
-                  >
-                    💾 Full Workbook (.xlsx)
-                  </button>
-                  <div className="export-divider" />
-                  <div className="export-section-title">📄 PDF Documents</div>
-                  <button
-                    onClick={() => {
-                      exportToPDF(
-                        households,
-                        pregnant,
-                        children,
-                        "households",
-                        area,
-                      );
-                      showToast("PDF ready!");
-                      setExportMenu(false);
-                    }}
-                  >
-                    📋 Households Registry
-                  </button>
-                  <button
-                    onClick={() => {
-                      exportToPDF(
-                        households,
-                        pregnant,
-                        children,
-                        "pregnant",
-                        area,
-                      );
-                      showToast("PDF ready!");
-                      setExportMenu(false);
-                    }}
-                  >
-                    🤰 Pregnant Women List
-                  </button>
-                  <button
-                    onClick={() => {
-                      exportToPDF(
-                        households,
-                        pregnant,
-                        children,
-                        "children",
-                        area,
-                      );
-                      showToast("PDF ready!");
-                      setExportMenu(false);
-                    }}
-                  >
-                    👶 Children Registry
-                  </button>
-                  <button
-                    onClick={() => {
-                      exportToPDF(households, pregnant, children, "all", area);
-                      showToast("PDF ready!");
-                      setExportMenu(false);
-                    }}
-                  >
-                    📑 Master Monthly Report
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </header>
+        <Header
+          currentLabel={currentLabel}
+          area={area}
+          households={households}
+          pregnant={pregnant}
+          children={children}
+          showToast={showToast}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+        />
 
         <div className="content">
           <AppRoutes
             stats={stats}
-            households={households}
-            pregnant={pregnant}
-            children={children}
+            households={filteredData.households}
+            pregnant={filteredData.pregnant}
+            children={filteredData.children}
             recycleBin={recycleBin}
             refresh={refresh}
             showToast={showToast}
@@ -236,68 +153,6 @@ export default function App() {
           {toast.type === "success" ? "✓" : "✕"} {toast.msg}
         </div>
       )}
-      {showSettings && (
-        <SettingsModal
-          area={area}
-          onSave={handleSaveArea}
-          onClose={() => setShowSettings(false)}
-        />
-      )}
     </div>
-  );
-}
-
-function SettingsModal({ area, onSave, onClose }) {
-  const [form, setForm] = useState(area);
-  return (
-    <Modal title="Area & Reporting Settings" onClose={onClose}>
-      <div className="modal-body">
-        <div className="form-grid">
-          <div className="form-field">
-            <label>District</label>
-            <input
-              value={form.district}
-              onChange={(e) => setForm({ ...form, district: e.target.value })}
-            />
-          </div>
-          <div className="form-field">
-            <label>Block</label>
-            <input
-              value={form.block}
-              onChange={(e) => setForm({ ...form, block: e.target.value })}
-            />
-          </div>
-          <div className="form-field">
-            <label>GP / Ward</label>
-            <input
-              value={form.gp}
-              onChange={(e) => setForm({ ...form, gp: e.target.value })}
-            />
-          </div>
-          <div className="form-field">
-            <label>Village / Area</label>
-            <input
-              value={form.village}
-              onChange={(e) => setForm({ ...form, village: e.target.value })}
-            />
-          </div>
-          <div className="form-field">
-            <label>Sub-Center Name</label>
-            <input
-              value={form.subcenter}
-              onChange={(e) => setForm({ ...form, subcenter: e.target.value })}
-            />
-          </div>
-        </div>
-        <div className="modal-footer">
-          <button className="btn-cancel" onClick={onClose}>
-            Cancel
-          </button>
-          <button className="btn-save" onClick={() => onSave(form)}>
-            Save Settings
-          </button>
-        </div>
-      </div>
-    </Modal>
   );
 }
