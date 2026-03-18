@@ -19,12 +19,12 @@
   --red-light: #fee2e2;
   --purple: #7c3aed;
   --border: #d1e8d9;
-  --shadow: 0 2px 8px rgba(15,35,24,.08);
-  --shadow-lg: 0 8px 32px rgba(15,35,24,.12);
+  --shadow: 0 2px 8px rgba(15, 35, 24, 0.08);
+  --shadow-lg: 0 8px 32px rgba(15, 35, 24, 0.12);
   --radius: 8px;
-  --font: 'Sora', sans-serif;
-  --mono: 'JetBrains Mono', monospace;
-  
+  --font: "Sora", sans-serif;
+  --mono: "JetBrains Mono", monospace;
+
   /* Additional variables from later edits */
   --pink-primary: #be185d;
   --border-color: #d1e8d9;
@@ -33,6 +33,17 @@
   --bg-dim: #f0f4f0;
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
-html, body, #root { height: 100%; font-family: var(--font); }
+html,
+body,
+#root {
+  height: 100%;
+  font-family: var(--font);
+}

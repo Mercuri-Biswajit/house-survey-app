@@ -1,6 +1,8 @@
+/* eslint-disable no-unused-vars */
 import { useState, useMemo } from "react";
 import { db, getAgeGroupFromDOB, calcAgeFull } from "../../services/db";
 import Modal from "../../components/Modal";
+import ConfirmModal from "../../components/ConfirmModal";
 import VaccinationCard from "./VaccinationCard";
 
 const EMPTY_CHILD = {
@@ -133,7 +135,9 @@ export default function AllChildrenTab({ data, onRefresh, onToast }) {
   const [search, setSearch] = useState("");
   const [modal, setModal] = useState(null);
   const [form, setForm] = useState(EMPTY_CHILD);
-  const [showCard, setShowCard] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 20;
 
   function handlePrint() {
     window.print();
@@ -147,7 +151,8 @@ export default function AllChildrenTab({ data, onRefresh, onToast }) {
           (c) =>
             String(c.hhNo).includes(q) ||
             c.name?.toLowerCase().includes(q) ||
-            c.guardianName?.toLowerCase().includes(q),
+            c.guardianName?.toLowerCase().includes(q) ||
+            String(c.mobile).includes(q),
         )
       : children;
   }, [data, search]);
@@ -155,6 +160,9 @@ export default function AllChildrenTab({ data, onRefresh, onToast }) {
   const sorted = useMemo(() => {
     return [...filtered].sort((a, b) => Number(a.hhNo) - Number(b.hhNo));
   }, [filtered]);
+
+  const pagesCount = Math.ceil(sorted.length / PAGE_SIZE);
+  const paged = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   function openAdd() {
     setForm({ ...EMPTY_CHILD, _id: Date.now() });
@@ -201,10 +209,15 @@ export default function AllChildrenTab({ data, onRefresh, onToast }) {
   }
 
   function handleDelete(c) {
-    if (!window.confirm(`Delete record for ${c.name}?`)) return;
-    db.deleteChild(c._id);
+    setConfirmDelete(c);
+  }
+
+  function confirmDeleteAction() {
+    if (!confirmDelete) return;
+    db.deleteChild(confirmDelete._id);
     onRefresh();
-    onToast("Record deleted. Main sheet updated ⟳", "error");
+    setConfirmDelete(null);
+    onToast("Record deleted. Moved to Recycle Bin ⟳", "error");
   }
 
   function F(key, label, type = "text") {
@@ -255,9 +268,12 @@ export default function AllChildrenTab({ data, onRefresh, onToast }) {
           className="search-input"
           placeholder="Search name, guardian, HH no., mobile…"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
         />
-        <span className="result-count">{filtered.length} records</span>
+        <span className="result-count">{sorted.length} records</span>
         <button className="btn-add btn-amber" onClick={openAdd}>
           + Add Child
         </button>
@@ -277,7 +293,7 @@ export default function AllChildrenTab({ data, onRefresh, onToast }) {
             </tr>
           </thead>
           <tbody>
-            {filtered.length === 0 && (
+            {paged.length === 0 && (
               <tr>
                 <td
                   colSpan="7"
@@ -288,7 +304,7 @@ export default function AllChildrenTab({ data, onRefresh, onToast }) {
                 </td>
               </tr>
             )}
-            {filtered.map((c) => {
+            {paged.map((c) => {
               const grp = getAgeGroupFromDOB(c.dob);
               const ageStr = calcAgeFull(c.dob);
               const col = AGE_GROUP_COLORS[grp] || "dim";
@@ -322,7 +338,10 @@ export default function AllChildrenTab({ data, onRefresh, onToast }) {
                   <td>{c.guardianName}</td>
                   <td className="mono center">{c.mobile || "—"}</td>
                   <td className="center">
-                    <div className="action-btns" style={{ justifyContent: "center" }}>
+                    <div
+                      className="action-btns"
+                      style={{ justifyContent: "center" }}
+                    >
                       <button
                         className="btn-icon btn-view"
                         title="Card View"
@@ -351,6 +370,24 @@ export default function AllChildrenTab({ data, onRefresh, onToast }) {
             })}
           </tbody>
         </table>
+      </div>
+
+      <div className="pagination">
+        <button
+          disabled={page <= 1}
+          onClick={() => setPage(page - 1)}
+        >
+          Previous
+        </button>
+        <span className="page-info">
+          Page {page} of {pagesCount || 1}
+        </span>
+        <button
+          disabled={page >= pagesCount}
+          onClick={() => setPage(page + 1)}
+        >
+          Next
+        </button>
       </div>
 
       {(modal === "add" || modal === "edit") && (
@@ -692,6 +729,14 @@ export default function AllChildrenTab({ data, onRefresh, onToast }) {
             </button>
           </div>
         </Modal>
+      )}
+      {confirmDelete && (
+        <ConfirmModal
+          title="Confirm Deletion"
+          message={`Are you sure you want to delete the record for ${confirmDelete.name}? It will be moved to the Recycle Bin.`}
+          onConfirm={confirmDeleteAction}
+          onClose={() => setConfirmDelete(null)}
+        />
       )}
     </div>
   );

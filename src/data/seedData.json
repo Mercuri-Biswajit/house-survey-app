@@ -4035,7 +4035,7 @@
       "dob": "2024-11-16",
       "gender": "M",
       "guardianName": "Shibani Sahani",
-      "mobile": "<openpyxl.worksheet.formula.ArrayFormula object at 0x7ee5da1acad0>",
+      "mobile": "",
       "mcpCard": "",
       "bOPV_birth": "2024-11-17",
       "BCG": null,

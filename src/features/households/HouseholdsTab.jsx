@@ -1,7 +1,10 @@
+/* eslint-disable no-unused-vars */
 import { useState, useMemo } from "react";
 import { db } from "../../services/db";
 import Modal from "../../components/Modal";
+import ConfirmModal from "../../components/ConfirmModal";
 import LinkedRecordsPanel from "./LinkedRecordsPanel";
+import { SearchToolbar, Pagination } from "../../components/common";
 
 const EMPTY_HH = {
   id: "",
@@ -24,6 +27,7 @@ export default function HouseholdsTab({ data, onRefresh, onToast }) {
   const [search, setSearch] = useState("");
   const [modal, setModal] = useState(null);
   const [form, setForm] = useState(EMPTY_HH);
+  const [confirmDelete, setConfirmDelete] = useState(null);
   const [page, setPage] = useState(1);
   const [linkedHH, setLinkedHH] = useState(null);
   const PAGE_SIZE = 20;
@@ -99,9 +103,14 @@ export default function HouseholdsTab({ data, onRefresh, onToast }) {
   }
 
   function handleDelete(id) {
-    if (!window.confirm(`Delete House #${id} and all linked records?`)) return;
-    db.deleteHousehold(id);
+    setConfirmDelete(id);
+  }
+
+  function confirmDeleteAction() {
+    if (!confirmDelete) return;
+    db.deleteHousehold(confirmDelete);
     onRefresh();
+    setConfirmDelete(null);
     onToast("Household deleted", "error");
   }
 
@@ -155,21 +164,14 @@ export default function HouseholdsTab({ data, onRefresh, onToast }) {
 
   return (
     <div className="tab-content">
-      <div className="toolbar">
-        <input
-          className="search-input"
-          placeholder="Search house no., name, contact…"
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-        />
-        <span className="result-count">{filtered.length} records</span>
-        <button className="btn-add" onClick={openAdd}>
-          + Add Household
-        </button>
-      </div>
+      <SearchToolbar
+        search={search}
+        onSearch={(val) => { setSearch(val); setPage(1); }}
+        resultCount={filtered.length}
+        placeholder="Search house no., name, contact…"
+        addLabel="+ Add Household"
+        onAdd={openAdd}
+      />
 
       <div className="table-wrap">
         <table className="data-table">
@@ -294,44 +296,7 @@ export default function HouseholdsTab({ data, onRefresh, onToast }) {
       </div>
 
       {/* Pagination */}
-      {pages > 1 && (
-        <div className="pagination">
-          <button disabled={page === 1} onClick={() => setPage((p) => p - 1)}>
-            ‹ Prev
-          </button>
-          {Array.from({ length: pages }, (_, i) => i + 1)
-            .filter((p) => p === 1 || p === pages || Math.abs(p - page) <= 2)
-            .reduce((acc, p, i, arr) => {
-              if (i > 0 && p - arr[i - 1] > 1) acc.push("...");
-              acc.push(p);
-              return acc;
-            }, [])
-            .map((p, i) =>
-              p === "..." ? (
-                <span key={`d${i}`} className="page-dots">
-                  …
-                </span>
-              ) : (
-                <button
-                  key={p}
-                  className={page === p ? "active" : ""}
-                  onClick={() => setPage(p)}
-                >
-                  {p}
-                </button>
-              ),
-            )}
-          <button
-            disabled={page === pages}
-            onClick={() => setPage((p) => p + 1)}
-          >
-            Next ›
-          </button>
-          <span className="page-info">
-            Page {page} of {pages}
-          </span>
-        </div>
-      )}
+      <Pagination page={page} totalPages={pages} onPageChange={setPage} />
 
       {/* ── Modal ── */}
       {modal && (
@@ -414,6 +379,14 @@ export default function HouseholdsTab({ data, onRefresh, onToast }) {
           onClose={() => setLinkedHH(null)}
           onRefresh={onRefresh}
           onToast={onToast}
+        />
+      )}
+      {confirmDelete && (
+        <ConfirmModal
+          title="Confirm Household Deletion"
+          message={`Are you sure you want to delete House #${confirmDelete} and ALL linked records? This action cannot be undone.`}
+          onConfirm={confirmDeleteAction}
+          onClose={() => setConfirmDelete(null)}
         />
       )}
     </div>

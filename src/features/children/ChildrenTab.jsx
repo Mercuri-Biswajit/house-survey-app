@@ -1,6 +1,8 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useMemo } from "react";
 import { db, getAgeGroupFromDOB, calcAgeFull } from "../../services/db";
 import Modal from "../../components/Modal";
+import ConfirmModal from "../../components/ConfirmModal";
 import VaccinationCard from "./VaccinationCard";
 
 const AGE_GROUP_LABELS = {
@@ -107,6 +109,7 @@ export default function ChildrenTab({ data, filterGroup, onRefresh, onToast }) {
   const [form, setForm] = useState(EMPTY);
   const [expand, setExpand] = useState(null);
   const [showCard, setShowCard] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
   const filtered = useMemo(() => {
     let list = data;
@@ -147,6 +150,18 @@ export default function ChildrenTab({ data, filterGroup, onRefresh, onToast }) {
         ? "Child added! Main sheet updated ⟳"
         : "Updated! Main sheet updated ⟳",
     );
+  }
+
+  function handleDelete(c) {
+    setConfirmDelete(c);
+  }
+
+  function confirmDeleteAction() {
+    if (!confirmDelete) return;
+    db.deleteChild(confirmDelete._id);
+    onRefresh();
+    setConfirmDelete(null);
+    onToast("Record moved to Recycle Bin ⟳", "error");
   }
 
   function CF(key, label, type = "text") {
@@ -209,7 +224,7 @@ export default function ChildrenTab({ data, filterGroup, onRefresh, onToast }) {
         className={`info-banner info-${filterGroup ? AGE_GROUP_COLORS[filterGroup] : "amber"}`}
         style={{ marginBottom: 0 }}
       >
-        ⟳ Use the <strong>Household Tab (🔗)</strong> to add or delete records.
+        ⟳ Use the <strong>Household Tab (🔗)</strong> to add records.
         Age group is auto-detected from Date of Birth.
       </div>
 
@@ -299,6 +314,13 @@ export default function ChildrenTab({ data, filterGroup, onRefresh, onToast }) {
                       >
                         ✏
                       </button>
+                      <button
+                        className="btn-icon btn-del"
+                        onClick={() => handleDelete(c)}
+                        title="Delete"
+                      >
+                        ✕
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -385,6 +407,14 @@ export default function ChildrenTab({ data, filterGroup, onRefresh, onToast }) {
             .getHouseholds()
             .find((h) => Number(h.id) === Number(showCard.hhNo))}
           onClose={() => setShowCard(null)}
+        />
+      )}
+      {confirmDelete && (
+        <ConfirmModal
+          title="Confirm Deletion"
+          message={`Are you sure you want to delete the record for ${confirmDelete.name}? It will be moved to the Recycle Bin.`}
+          onConfirm={confirmDeleteAction}
+          onClose={() => setConfirmDelete(null)}
         />
       )}
     </div>

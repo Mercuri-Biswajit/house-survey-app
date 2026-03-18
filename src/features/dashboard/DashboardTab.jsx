@@ -1,18 +1,7 @@
+/* eslint-disable no-unused-vars */
 import { useMemo } from "react";
 import { db } from "../../services/db";
-
-function StatCard({ label, value, type }) {
-  return (
-    <div className={`stat-card stat-card-${type}`}>
-      <div className="stat-label">{label}</div>
-      <div className="stat-value-wrap">
-        <button className="stat-btn">−</button>
-        <div className="stat-value">{(value ?? 0).toLocaleString()}</div>
-        <button className="stat-btn">+</button>
-      </div>
-    </div>
-  );
-}
+import { StatCard } from "../../components/common";
 
 function MiniBar({ label, value, max, color }) {
   const pct = max > 0 ? (value / max) * 100 : 0;

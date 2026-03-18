@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useState, useMemo } from "react";
 import { db, getAgeGroupFromDOB, calcAgeFull } from "../../services/db";
 import Modal from "../../components/Modal";

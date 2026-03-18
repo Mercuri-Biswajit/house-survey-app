@@ -349,7 +349,8 @@
   letter-spacing: 0.03em;
 }
 
-.report-field input, .report-field select {
+.report-field input,
+.report-field select {
   background: white;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -604,13 +605,13 @@
   justify-content: center;
   gap: 8px;
 }
-.linked-tabs button.active.pink { 
-  border-bottom: 3px solid var(--pink); 
-  color: var(--pink); 
+.linked-tabs button.active.pink {
+  border-bottom: 3px solid var(--pink);
+  color: var(--pink);
 }
-.linked-tabs button.active.amber { 
-  border-bottom: 3px solid var(--amber); 
-  color: var(--amber); 
+.linked-tabs button.active.amber {
+  border-bottom: 3px solid var(--amber);
+  color: var(--amber);
 }
 .tab-count {
   background: var(--bg2);
@@ -662,7 +663,9 @@
   width: 100%;
   max-width: 800px;
   max-height: 90vh;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -824,7 +827,8 @@
   body * {
     visibility: hidden;
   }
-  .printable-area, .printable-area * {
+  .printable-area,
+  .printable-area * {
     visibility: visible;
   }
   .printable-area {
@@ -847,8 +851,12 @@
   border-color: var(--text3);
   box-shadow: var(--shadow-sm);
 }
-.pink-card { border-left: 4px solid var(--pink); }
-.amber-card { border-left: 4px solid var(--amber); }
+.pink-card {
+  border-left: 4px solid var(--pink);
+}
+.amber-card {
+  border-left: 4px solid var(--amber);
+}
 
 .clickable-card {
   cursor: pointer;
@@ -856,7 +864,7 @@
 }
 .clickable-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   border-color: var(--pink-light);
 }
 .clickable-card:active {
@@ -910,9 +918,21 @@
   border: 1px solid var(--border);
   white-space: nowrap;
 }
-.tag.green { background: #f0fdf4; color: #166534; border-color: #bbf7d0; }
-.tag.teal { background: #f0fdfa; color: #0f766e; border-color: #99f6e4; }
-.tag.red { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+.tag.green {
+  background: #f0fdf4;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+.tag.teal {
+  background: #f0fdfa;
+  color: #0f766e;
+  border-color: #99f6e4;
+}
+.tag.red {
+  background: #fef2f2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
 
 @media print {
   .no-print {
@@ -931,7 +951,8 @@
   body * {
     visibility: hidden;
   }
-  .printable-area, .printable-area * {
+  .printable-area,
+  .printable-area * {
     visibility: visible;
   }
   .printable-area {

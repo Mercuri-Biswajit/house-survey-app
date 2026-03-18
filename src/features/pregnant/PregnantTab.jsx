@@ -1,6 +1,8 @@
 import { useState, useMemo } from "react";
 import { db, calcAgeYears } from "../../services/db";
 import Modal from "../../components/Modal";
+import ConfirmModal from "../../components/ConfirmModal";
+import { SearchToolbar } from "../../components/common";
 
 const EMPTY = {
   hhNo: "",
@@ -44,6 +46,7 @@ export default function PregnantTab({ data, onRefresh, onToast }) {
   const [search, setSearch] = useState("");
   const [modal, setModal] = useState(null);
   const [form, setForm] = useState(EMPTY);
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -89,6 +92,19 @@ export default function PregnantTab({ data, onRefresh, onToast }) {
         ? "Record added! Main sheet updated ⟳"
         : "Record updated! Main sheet updated ⟳",
     );
+  }
+
+  function handleDelete(p, e) {
+    e.stopPropagation(); // Don't trigger edit modal
+    setConfirmDelete(p);
+  }
+
+  function confirmDeleteAction() {
+    if (!confirmDelete) return;
+    db.deletePregnant(confirmDelete._id);
+    onRefresh();
+    setConfirmDelete(null);
+    onToast("Record moved to Recycle Bin ⟳", "error");
   }
 
   function handlePrint() {
@@ -140,18 +156,15 @@ export default function PregnantTab({ data, onRefresh, onToast }) {
 
   return (
     <div className="tab-content">
-      <div className="toolbar">
-        <input
-          className="search-input"
-          placeholder="Search name, husband, HH no., mobile…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <span className="result-count">{filtered.length} records</span>
-      </div>
+      <SearchToolbar
+        search={search}
+        onSearch={(val) => setSearch(val)}
+        resultCount={filtered.length}
+        placeholder="Search name, husband, HH no., mobile…"
+      />
 
       <div className="info-banner no-margin">
-        ⟳ Use the <strong>Household Tab (🔗)</strong> to add or delete records.
+        ⟳ Use the <strong>Household Tab (🔗)</strong> to add records.
         You can only edit existing records here.
       </div>
 
@@ -179,24 +192,35 @@ export default function PregnantTab({ data, onRefresh, onToast }) {
                     <span>Husband: {p.husbandName || "—"}</span>
                   </div>
                 </div>
-                {tri && (
-                  <span
-                    className="badge"
-                    style={{
-                      backgroundColor: tri.color + "15",
-                      color: tri.color,
-                      borderColor: tri.color + "30",
-                      borderStyle: "solid",
-                      borderWidth: "1px",
-                      padding: "2px 8px",
-                      borderRadius: "6px",
-                      fontSize: "11px",
-                      fontWeight: "600"
-                    }}
+                <div style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
+                  {tri && (
+                    <span
+                      className="badge"
+                      style={{
+                        backgroundColor: tri.color + "15",
+                        color: tri.color,
+                        borderColor: tri.color + "30",
+                        borderStyle: "solid",
+                        borderWidth: "1px",
+                        padding: "2px 8px",
+                        borderRadius: "6px",
+                        fontSize: "11px",
+                        fontWeight: "600",
+                        whiteSpace: "nowrap"
+                      }}
+                    >
+                      {tri.label}
+                    </span>
+                  )}
+                  <button 
+                    className="btn-icon btn-del" 
+                    onClick={(e) => handleDelete(p, e)}
+                    title="Delete Record"
+                    style={{ padding: "4px", fontSize: "14px" }}
                   >
-                    {tri.label}
-                  </span>
-                )}
+                    ✕
+                  </button>
+                </div>
               </div>
 
               <div className="record-tags">
@@ -305,6 +329,14 @@ export default function PregnantTab({ data, onRefresh, onToast }) {
             </button>
           </div>
         </Modal>
+      )}
+      {confirmDelete && (
+        <ConfirmModal
+          title="Confirm Deletion"
+          message={`Are you sure you want to delete the record for ${confirmDelete.name}? It will be moved to the Recycle Bin.`}
+          onConfirm={confirmDeleteAction}
+          onClose={() => setConfirmDelete(null)}
+        />
       )}
     </div>
   );

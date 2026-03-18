@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { db, getAgeGroupFromDOB, calcAgeYears, calcAgeFull } from "../../services/db";
 import Modal from "../../components/Modal";
+import ConfirmModal from "../../components/ConfirmModal";
 
 const EMPTY_PREGNANT = {
   hhNo: "",
@@ -86,6 +87,8 @@ export default function LinkedRecordsPanel({
   const [tab, setTab] = useState(defaultTab || "pregnant");
   const [pregnantList, setPregnantList] = useState([]);
   const [childrenList, setChildrenList] = useState([]);
+  const [searchChildren, setSearchChildren] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(null); // { type, item }
   const [editingP, setEditingP] = useState(null); // pregnant form
   const [editingC, setEditingC] = useState(null); // child form
 
@@ -120,11 +123,26 @@ export default function LinkedRecordsPanel({
     setEditingP(null);
     onToast("Pregnant record saved! Main sheet updated ⟳");
   }
+
+  function deleteChild(c) {
+    setConfirmDelete({ type: "child", item: c });
+  }
+
   function deletePregnant(p) {
-    if (!window.confirm(`Delete record for ${p.name}?`)) return;
-    db.deletePregnant(p._id);
+    setConfirmDelete({ type: "pregnant", item: p });
+  }
+
+  function confirmDeleteAction() {
+    if (!confirmDelete) return;
+    const { type, item } = confirmDelete;
+    if (type === "child") {
+      db.deleteChild(item._id);
+    } else {
+      db.deletePregnant(item._id);
+    }
     refreshAll();
-    onToast("Record deleted. Main sheet updated ⟳", "error");
+    setConfirmDelete(null);
+    onToast("Record moved to Recycle Bin", "error");
   }
 
   // ── Children handlers ──────────────────────────────────────────────────────
@@ -143,12 +161,6 @@ export default function LinkedRecordsPanel({
     refreshAll();
     setEditingC(null);
     onToast("Child record saved! Main sheet updated ⟳");
-  }
-  function deleteChild(c) {
-    if (!window.confirm(`Delete record for ${c.name}?`)) return;
-    db.deleteChild(c._id);
-    refreshAll();
-    onToast("Record deleted. Main sheet updated ⟳", "error");
   }
 
   function calcEDD(lmp) {
@@ -671,6 +683,14 @@ export default function LinkedRecordsPanel({
           )}
         </div>
       </div>
+      {confirmDelete && (
+        <ConfirmModal
+          title={`Confirm ${confirmDelete.type === "child" ? "Child" : "Pregnant"} Deletion`}
+          message={`Are you sure you want to delete the record for ${confirmDelete.item.name}? It will be moved to the Recycle Bin.`}
+          onConfirm={confirmDeleteAction}
+          onClose={() => setConfirmDelete(null)}
+        />
+      )}
     </div>
   );
 }
