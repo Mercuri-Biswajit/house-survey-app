@@ -45,77 +45,7 @@
   flex-shrink: 0;
 }
 
-.btn-export {
-  background: var(--green);
-  color: #fff;
-  border: none;
-  padding: 10px 18px;
-  border-radius: 8px;
-  font-family: var(--font);
-  font-size: 13.5px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 2px 4px rgba(22, 163, 74, 0.15);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.btn-export:hover {
-  background: #15803d;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(22, 163, 74, 0.2);
-}
-.export-wrap {
-  position: relative;
-}
-.export-menu {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: var(--shadow-lg);
-  width: 220px;
-  z-index: 100;
-  padding: 8px;
-  animation: slideUp 0.15s ease;
-  border-top: 3px solid var(--green);
-}
-.export-menu button {
-  width: 100%;
-  padding: 10px 14px;
-  text-align: left;
-  background: none;
-  border: none;
-  border-radius: 8px;
-  font-family: var(--font);
-  font-size: 13px;
-  color: var(--text);
-  cursor: pointer;
-  transition: all 0.15s;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.export-menu button:hover {
-  background: var(--green-light);
-  color: var(--green);
-}
-.export-section-title {
-  font-size: 10px;
-  font-weight: 800;
-  color: var(--text3);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  padding: 10px 12px 6px;
-}
-.export-divider {
-  height: 1px;
-  background: var(--border);
-  margin: 6px 4px;
-}
+/* Export menu styles moved to Header.module.css */
 
 .toolbar {
   display: flex;
@@ -285,72 +215,8 @@
   vertical-align: middle;
 }
 
-/* Modals */
-.modal {
-  background: var(--bg2);
-  border-radius: var(--radius);
-  width: 540px;
-  max-width: calc(100vw - 32px);
-  max-height: 92vh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  box-shadow: var(--shadow-lg);
-  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  border: 1px solid var(--border);
-}
-.modal.modal-wide {
-  width: 1100px;
-  max-width: calc(100vw - 40px);
-}
-.modal-header {
-  padding: 22px 28px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #f8fafc;
-  flex-shrink: 0;
-}
-.modal-title {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: -0.01em;
-}
-.modal-close {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: #fff;
-  cursor: pointer;
-  color: var(--text3);
-  font-size: 14px;
-  transition: all 0.15s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.modal-close:hover {
-  background: var(--red-light);
-  color: var(--red);
-  border-color: var(--red);
-  transform: rotate(90deg);
-}
-.modal-body {
-  padding: 28px;
-  overflow-y: auto;
-  flex: 1;
-}
-.modal-footer {
-  padding: 18px 28px;
-  border-top: 1px solid var(--border);
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  background: #f8fafc;
-}
+/* Modal styles moved to Modal.module.css */
+
 
 /* Forms */
 .form-grid {
@@ -393,55 +259,6 @@
   box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.08);
 }
 
-/* Badges */
-.badge-pink {
-  background: var(--pink-light);
-  color: var(--pink);
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-weight: 700;
-  font-size: 10.5px;
-}
-.badge-blue {
-  background: var(--teal-light);
-  color: var(--teal);
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-weight: 700;
-  font-size: 10.5px;
-}
-.badge-purple {
-  background: #ede9fe;
-  color: var(--purple);
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-weight: 700;
-  font-size: 10.5px;
-}
-.badge-red {
-  background: var(--red-light);
-  color: var(--red);
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-weight: 700;
-  font-size: 10.5px;
-}
-.badge-teal {
-  background: #ccfbf1;
-  color: #0f766e;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-weight: 700;
-  font-size: 10.5px;
-}
-.badge-amber {
-  background: var(--amber-light);
-  color: var(--amber);
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-weight: 700;
-  font-size: 10.5px;
-}
 
 /* Utility Classes */
 .mono {
@@ -456,96 +273,6 @@
   font-size: 13px;
 }
 
-/* Counters for Households */
-.counters-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-}
-.counter-field {
-  padding: 10px 14px;
-  border-radius: 8px;
-  font-weight: 600;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  border: 1px solid transparent;
-}
-.counter-label {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  opacity: 0.85;
-}
-.counter-controls {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: rgba(255, 255, 255, 0.5);
-  padding: 4px;
-  border-radius: 6px;
-}
-.counter-btn {
-  width: 28px;
-  height: 28px;
-  border: none;
-  border-radius: 4px;
-  background: #fff;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-  color: var(--text);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  transition: all 0.1s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.counter-btn:hover {
-  background: var(--green);
-  color: #fff;
-}
-.counter-val {
-  font-size: 18px;
-  width: 30px;
-  text-align: center;
-}
-
-.counter-pink {
-  background: var(--pink-light);
-  color: var(--pink);
-  border-color: rgba(219, 39, 119, 0.2);
-}
-.counter-blue {
-  background: var(--teal-light);
-  color: var(--teal);
-  border-color: rgba(13, 148, 136, 0.2);
-}
-.counter-blue2 {
-  background: #dbeafe;
-  color: #1d4ed8;
-  border-color: rgba(59, 130, 246, 0.2);
-}
-.counter-teal {
-  background: #ccfbf1;
-  color: #0f766e;
-  border-color: rgba(15, 118, 110, 0.2);
-}
-.counter-purple {
-  background: #ede9fe;
-  color: var(--purple);
-  border-color: rgba(109, 40, 217, 0.2);
-}
-.counter-amber {
-  background: var(--amber-light);
-  color: var(--amber);
-  border-color: rgba(180, 83, 9, 0.2);
-}
-.counter-red {
-  background: var(--red-light);
-  color: var(--red);
-  border-color: rgba(220, 38, 38, 0.2);
-}
 .btn-print {
   background: var(--teal);
   color: white;
@@ -615,4 +342,28 @@
   color: var(--text3);
   margin-left: 8px;
   font-weight: 600;
+}
+
+/* Form Sections */
+.form-section-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--sidebar);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 8px;
+}
+
+.section-hint-inline {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text3);
+  text-transform: none;
+  letter-spacing: normal;
+  font-style: italic;
 }

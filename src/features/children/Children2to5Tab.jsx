@@ -1,8 +1,11 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useMemo } from "react";
 import { db, getAgeGroupFromDOB, calcAgeFull } from "../../services/db";
-import Modal from "../../components/Modal";
+import { Badge } from "../../components/common";
+import Modal from "../../components/common/Modal";
 import VaccinationCard from "./VaccinationCard";
+import { useToast } from "../../contexts/ToastContext";
+
 
 const EMPTY = {
   hhNo: "",
@@ -72,7 +75,9 @@ function VaccDot({ done }) {
 
 const allVaccFields = VACC_GROUPS_25.flatMap((g) => g.fields.map((f) => f[0]));
 
-export default function Children2to5Tab({ data, onRefresh, onToast }) {
+export default function Children2to5Tab({ data, onRefresh }) {
+  const { showToast } = useToast();
+
   const [search, setSearch] = useState("");
   const [modal, setModal] = useState(null);
   const [form, setForm] = useState(EMPTY);
@@ -103,13 +108,14 @@ export default function Children2to5Tab({ data, onRefresh, onToast }) {
 
   function handleSave() {
     if (!form.name?.trim()) {
-      onToast("Child name required", "error");
+      showToast("Child name required", "error");
       return;
     }
     if (!form.hhNo) {
-      onToast("House No. is required", "error");
+      showToast("House No. is required", "error");
       return;
     }
+
     // force dob to be in 2-5yr range validation hint (not hard block)
     const grp = getAgeGroupFromDOB(form.dob);
     if (form.dob && grp !== "2to5years") {
@@ -123,11 +129,12 @@ export default function Children2to5Tab({ data, onRefresh, onToast }) {
     db.saveChild(form);
     onRefresh();
     setModal(null);
-    onToast(
+    showToast(
       modal === "add"
         ? "Child added! Main sheet updated ⟳"
         : "Updated! Main sheet updated ⟳",
     );
+
   }
 
   function CF(key, label, type = "text") {
@@ -258,7 +265,7 @@ export default function Children2to5Tab({ data, onRefresh, onToast }) {
                   </td>
                   <td className="center">
                     {c.missedVaccine ? (
-                      <span className="badge-red">Missed</span>
+                      <Badge variant="red">Missed</Badge>
                     ) : (
                       <span className="dim">—</span>
                     )}

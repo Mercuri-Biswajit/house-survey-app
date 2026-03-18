@@ -1,10 +1,14 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useMemo, useEffect } from "react";
 import { db } from "../../services/db";
-import StatCard from "../../components/common/StatCard";
-import ConfirmModal from "../../components/ConfirmModal";
+import { StatCard, Badge } from "../../components/common";
+import ConfirmModal from "../../components/common/ConfirmModal";
+import { useToast } from "../../contexts/ToastContext";
 
-export default function RecycleBinTab({ onRefresh, onToast }) {
+
+export default function RecycleBinTab({ onRefresh }) {
+  const { showToast } = useToast();
+
   const [data, setData] = useState([]);
   const [search, setSearch] = useState("");
   const [confirmAction, setConfirmAction] = useState(null); // { type, item, message }
@@ -62,13 +66,16 @@ export default function RecycleBinTab({ onRefresh, onToast }) {
 
     if (type === "restore") {
       db.restoreRecord(item);
-      onToast(`${item.name} restored successfully!`);
+      showToast(`${item.name} restored successfully!`);
+
     } else if (type === "permanent") {
       db.deletePermanently(item._id);
-      onToast(`Record for ${item.name} erased permanently.`, "error");
+      showToast(`Record for ${item.name} erased permanently.`, "error");
+
     } else if (type === "empty") {
       data.forEach((i) => db.deletePermanently(i._id));
-      onToast("Recycle Bin emptied.", "error");
+      showToast("Recycle Bin emptied.", "error");
+
     }
 
     const updated = db.getRecycleBin();
@@ -122,9 +129,9 @@ export default function RecycleBinTab({ onRefresh, onToast }) {
             {sorted.map((item) => (
               <tr key={item._id}>
                 <td>
-                  <span className={`badge-${item._type === "pregnant" ? "teal" : "blue"}`}>
+                  <Badge variant={item._type === "pregnant" ? "teal" : "blue"}>
                     {item._type === "pregnant" ? "🤰 Pregnant" : "👶 Child"}
-                  </span>
+                  </Badge>
                 </td>
                 <td className="name-cell">
                   <strong>{item.name}</strong>

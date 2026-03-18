@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import styles from "./Modal.module.css";
 
 export default function Modal({ title, onClose, children, wide }) {
   useEffect(() => {
@@ -11,17 +12,17 @@ export default function Modal({ title, onClose, children, wide }) {
 
   return (
     <div
-      className="modal-overlay"
+      className={styles.modalOverlay}
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className={`modal ${wide ? "modal-wide" : ""}`}>
-        <div className="modal-header">
-          <h2 className="modal-title">{title}</h2>
-          <button className="modal-close" onClick={onClose}>
+      <div className={`${styles.modal} ${wide ? styles.modalWide : ""}`}>
+        <div className={styles.modalHeader}>
+          <h2 className={styles.modalTitle}>{title}</h2>
+          <button className={styles.modalClose} onClick={onClose}>
             ✕
           </button>
         </div>
-        <div className="modal-body">{children}</div>
+        <div className={styles.modalBody}>{children}</div>
       </div>
     </div>
   );

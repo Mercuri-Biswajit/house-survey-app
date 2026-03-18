@@ -1,0 +1,91 @@
+:global(.counters-grid) {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 16px 0;
+}
+
+@media (max-width: 640px) {
+  .counters-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.counter-field {
+  padding: 12px;
+  border-radius: 10px;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.counter-field:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+  border-color: var(--green);
+}
+
+.counter-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text2);
+  font-weight: 700;
+}
+
+.counter-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-dim);
+  padding: 4px;
+  border-radius: 8px;
+}
+
+.counter-btn {
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 6px;
+  background: var(--bg2);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--text);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.counter-btn:hover {
+  background: var(--green);
+  color: #fff;
+}
+
+.counter-btn:active {
+  transform: scale(0.9);
+}
+
+.counter-val {
+  font-size: 16px;
+  font-weight: 700;
+  flex: 1;
+  text-align: center;
+  color: var(--sidebar);
+}
+
+/* Category Colors - More subtle top border or highlight */
+.counter-pink { border-top: 3px solid var(--pink); border-bottom: 1.5px solid var(--pink-light); }
+.counter-blue { border-top: 3px solid var(--teal); border-bottom: 1.5px solid var(--teal-light); }
+.counter-blue2 { border-top: 3px solid #3b82f6; border-bottom: 1.5px solid #dbeafe; }
+.counter-teal { border-top: 3px solid #0f766e; border-bottom: 1.5px solid #ccfbf1; }
+.counter-purple { border-top: 3px solid var(--purple); border-bottom: 1.5px solid #ede9fe; }
+.counter-amber { border-top: 3px solid var(--amber); border-bottom: 1.5px solid var(--amber-light); }
+.counter-red { border-top: 3px solid var(--red); border-bottom: 1.5px solid var(--red-light); }

@@ -1,10 +1,10 @@
-/* eslint-disable no-unused-vars */
 import { useState, useMemo } from "react";
 import { db } from "../../services/db";
-import Modal from "../../components/Modal";
-import ConfirmModal from "../../components/ConfirmModal";
+import Modal from "../../components/common/Modal";
+import ConfirmModal from "../../components/common/ConfirmModal";
 import LinkedRecordsPanel from "./LinkedRecordsPanel";
-import { SearchToolbar, Pagination } from "../../components/common";
+import { SearchToolbar, Pagination, Badge, CounterField } from "../../components/common";
+import { useToast } from "../../contexts/ToastContext";
 
 const EMPTY_HH = {
   id: "",
@@ -23,7 +23,8 @@ const EMPTY_HH = {
   childMissedVaccine: 0,
 };
 
-export default function HouseholdsTab({ data, onRefresh, onToast }) {
+export default function HouseholdsTab({ data, onRefresh }) {
+  const { showToast } = useToast();
   const [search, setSearch] = useState("");
   const [modal, setModal] = useState(null);
   const [form, setForm] = useState(EMPTY_HH);
@@ -64,23 +65,14 @@ export default function HouseholdsTab({ data, onRefresh, onToast }) {
 
   function handleSave() {
     if (!form.headName?.trim()) {
-      onToast("Head of family name is required", "error");
+      showToast("Head of family name is required", "error");
       return;
     }
     if (!form.id) {
-      onToast("House No. is required", "error");
+      showToast("House No. is required", "error");
       return;
     }
 
-    const existingIds = data
-      .filter((h) => h._internalId !== form._internalId)
-      .map((h) => Number(h.id));
-
-    // If adding a new house with an existing ID, we warn but allow (shifting happens in db.js)
-    // Actually, shifting is automatic, so no need to block.
-
-    // Save with ALL fields — auto-sync will recalculate children/pregnant from linked records
-    // But if user manually entered counts (for houses with no linked records yet), we keep those
     db.saveHousehold({
       ...form,
       id: Number(form.id),
@@ -95,7 +87,7 @@ export default function HouseholdsTab({ data, onRefresh, onToast }) {
     });
     onRefresh();
     setModal(null);
-    onToast(
+    showToast(
       modal === "add"
         ? "Household saved! Add linked records via 🔗"
         : "Household updated!",
@@ -111,7 +103,7 @@ export default function HouseholdsTab({ data, onRefresh, onToast }) {
     db.deleteHousehold(confirmDelete);
     onRefresh();
     setConfirmDelete(null);
-    onToast("Household deleted", "error");
+    showToast("Household deleted", "error");
   }
 
   // Field component
@@ -126,38 +118,6 @@ export default function HouseholdsTab({ data, onRefresh, onToast }) {
           readOnly={isReadOnly}
           onChange={(e) => setForm((p) => ({ ...p, [key]: e.target.value }))}
         />
-      </div>
-    );
-  }
-
-  // Number counter field with + / - buttons
-  function CounterField(key, label, colorClass) {
-    const val = Number(form[key]) || 0;
-    const isView = modal === "view";
-    return (
-      <div className={`counter-field ${colorClass}`}>
-        <div className="counter-label">{label}</div>
-        <div className="counter-controls">
-          {!isView && (
-            <button
-              className="counter-btn minus"
-              onClick={() =>
-                setForm((p) => ({ ...p, [key]: Math.max(0, val - 1) }))
-              }
-            >
-              −
-            </button>
-          )}
-          <span className="counter-val">{val}</span>
-          {!isView && (
-            <button
-              className="counter-btn plus"
-              onClick={() => setForm((p) => ({ ...p, [key]: val + 1 }))}
-            >
-              +
-            </button>
-          )}
-        </div>
       </div>
     );
   }
@@ -204,55 +164,54 @@ export default function HouseholdsTab({ data, onRefresh, onToast }) {
                 <td className="center">{h.familyMembers}</td>
                 <td className="center">
                   {h.pregnantWomen > 0 ? (
-                    <span
-                      className="badge-pink"
+                    <Badge 
+                      variant="pink" 
                       onClick={() => setLinkedHH({ id: h.id, tab: "pregnant" })}
-                      style={{ cursor: "pointer" }}
                     >
                       {h.pregnantWomen}
-                    </span>
+                    </Badge>
                   ) : (
                     <span className="dim">–</span>
                   )}
                 </td>
                 <td className="center">
                   {h.childUnder1Month > 0 ? (
-                    <span className="badge-blue">{h.childUnder1Month}</span>
+                    <Badge variant="blue">{h.childUnder1Month}</Badge>
                   ) : (
                     <span className="dim">–</span>
                   )}
                 </td>
                 <td className="center">
                   {h.child1MonthTo1Year > 0 ? (
-                    <span className="badge-blue">{h.child1MonthTo1Year}</span>
+                    <Badge variant="blue">{h.child1MonthTo1Year}</Badge>
                   ) : (
                     <span className="dim">–</span>
                   )}
                 </td>
                 <td className="center">
                   {h.child1To2Years > 0 ? (
-                    <span className="badge-teal">{h.child1To2Years}</span>
+                    <Badge variant="teal">{h.child1To2Years}</Badge>
                   ) : (
                     <span className="dim">–</span>
                   )}
                 </td>
                 <td className="center">
                   {h.child2To5Years > 0 ? (
-                    <span className="badge-purple">{h.child2To5Years}</span>
+                    <Badge variant="purple">{h.child2To5Years}</Badge>
                   ) : (
                     <span className="dim">–</span>
                   )}
                 </td>
                 <td className="center">
                   {h.child6To18Years > 0 ? (
-                    <span className="badge-purple">{h.child6To18Years}</span>
+                    <Badge variant="purple">{h.child6To18Years}</Badge>
                   ) : (
                     <span className="dim">–</span>
                   )}
                 </td>
                 <td className="center">
                   {h.childMissedVaccine > 0 ? (
-                    <span className="badge-red">{h.childMissedVaccine}</span>
+                    <Badge variant="red">{h.childMissedVaccine}</Badge>
                   ) : (
                     <span className="dim">–</span>
                   )}
@@ -295,10 +254,8 @@ export default function HouseholdsTab({ data, onRefresh, onToast }) {
         </table>
       </div>
 
-      {/* Pagination */}
       <Pagination page={page} totalPages={pages} onPageChange={setPage} />
 
-      {/* ── Modal ── */}
       {modal && (
         <Modal
           title={
@@ -311,7 +268,6 @@ export default function HouseholdsTab({ data, onRefresh, onToast }) {
           onClose={() => setModal(null)}
           wide
         >
-          {/* Basic Info */}
           <div className="form-grid">
             {F("id", "House No.", "number")}
             {F("headName", "Head of Family")}
@@ -322,7 +278,6 @@ export default function HouseholdsTab({ data, onRefresh, onToast }) {
             {F("landmark", "Landmark (e.g. Near Pond)")}
           </div>
 
-          {/* Counts — all directly editable */}
           <div className="form-section-title" style={{ marginTop: 18 }}>
             Household Health Summary
             <span className="section-hint-inline">
@@ -333,29 +288,55 @@ export default function HouseholdsTab({ data, onRefresh, onToast }) {
           </div>
 
           <div className="counters-grid">
-            {CounterField("pregnantWomen", "Pregnant Women", "counter-pink")}
-            {CounterField(
-              "childUnder1Month",
-              "Child < 1 Month",
-              "counter-blue",
-            )}
-            {CounterField(
-              "child1MonthTo1Year",
-              "Child 1M – 1Yr",
-              "counter-teal",
-            )}
-            {CounterField("child1To2Years", "Child 1 – 2 Yr", "counter-blue2")}
-            {CounterField("child2To5Years", "Child 2 – 5 Yr", "counter-purple")}
-            {CounterField(
-              "child6To18Years",
-              "Child 6 – 18 Yr",
-              "counter-purple",
-            )}
-            {CounterField(
-              "childMissedVaccine",
-              "Missed Vaccine",
-              "counter-red",
-            )}
+            <CounterField
+              label="Pregnant Women"
+              value={form.pregnantWomen}
+              onChange={(v) => setForm((p) => ({ ...p, pregnantWomen: v }))}
+              colorClass="counter-pink"
+              readOnly={modal === "view"}
+            />
+            <CounterField
+              label="Child < 1 Month"
+              value={form.childUnder1Month}
+              onChange={(v) => setForm((p) => ({ ...p, childUnder1Month: v }))}
+              colorClass="counter-blue"
+              readOnly={modal === "view"}
+            />
+            <CounterField
+              label="Child 1M – 1Yr"
+              value={form.child1MonthTo1Year}
+              onChange={(v) => setForm((p) => ({ ...p, child1MonthTo1Year: v }))}
+              colorClass="counter-teal"
+              readOnly={modal === "view"}
+            />
+            <CounterField
+              label="Child 1 – 2 Yr"
+              value={form.child1To2Years}
+              onChange={(v) => setForm((p) => ({ ...p, child1To2Years: v }))}
+              colorClass="counter-blue2"
+              readOnly={modal === "view"}
+            />
+            <CounterField
+              label="Child 2 – 5 Yr"
+              value={form.child2To5Years}
+              onChange={(v) => setForm((p) => ({ ...p, child2To5Years: v }))}
+              colorClass="counter-purple"
+              readOnly={modal === "view"}
+            />
+            <CounterField
+              label="Child 6 – 18 Yr"
+              value={form.child6To18Years}
+              onChange={(v) => setForm((p) => ({ ...p, child6To18Years: v }))}
+              colorClass="counter-purple"
+              readOnly={modal === "view"}
+            />
+            <CounterField
+              label="Missed Vaccine"
+              value={form.childMissedVaccine}
+              onChange={(v) => setForm((p) => ({ ...p, childMissedVaccine: v }))}
+              colorClass="counter-red"
+              readOnly={modal === "view"}
+            />
           </div>
 
           {modal !== "view" && (
@@ -371,14 +352,12 @@ export default function HouseholdsTab({ data, onRefresh, onToast }) {
         </Modal>
       )}
 
-      {/* Linked Records Side Panel */}
       {linkedHH && (
         <LinkedRecordsPanel
           hhNo={linkedHH.id}
           defaultTab={linkedHH.tab}
           onClose={() => setLinkedHH(null)}
           onRefresh={onRefresh}
-          onToast={onToast}
         />
       )}
       {confirmDelete && (

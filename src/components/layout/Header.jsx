@@ -1,5 +1,8 @@
-import React, { useState } from "react";
-import { exportToExcel, exportToPDF } from "../utils/exportUtils";
+import { useState } from "react";
+import { exportToExcel, exportToPDF } from "../../utils/exportUtils";
+import { useToast } from "../../contexts/ToastContext";
+import styles from "./Header.module.css";
+
 
 export default function Header({
   currentLabel,
@@ -7,46 +10,40 @@ export default function Header({
   households,
   pregnant,
   children,
-  showToast,
   searchQuery,
   setSearchQuery,
   toggleSidebar,
 }) {
+  const { showToast } = useToast();
   const [exportMenu, setExportMenu] = useState(false);
 
+
   return (
-    <header className="topbar">
-      <div className="topbar-left" style={{ display: "flex", alignItems: "center" }}>
-        <button className="btn-toggle" onClick={toggleSidebar} title="Toggle Sidebar">
+    <header className={styles.topbar}>
+      <div className={styles.topbarLeft}>
+        <button className={styles.btnToggle} onClick={toggleSidebar} title="Toggle Sidebar">
           ☰
         </button>
         <div>
-          <h1 className="page-title">{currentLabel}</h1>
-          <span className="page-subtitle">
+          <h1 className={styles.pageTitle}>{currentLabel}</h1>
+          <span className={styles.pageSubtitle}>
             {area.district} • {area.block} • {area.gp} • {area.village}
           </span>
         </div>
       </div>
 
-      <div className="search-container">
-        <span className="search-icon">🔍</span>
+      <div className={styles.searchContainer}>
+        <span className={styles.searchIcon}>🔍</span>
         <input
           type="text"
-          className="search-input"
+          className={styles.searchInput}
           placeholder="Search by name, household #, or mobile..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
         {searchQuery && (
           <button
-            style={{
-              position: "absolute",
-              right: "12px",
-              background: "none",
-              border: "none",
-              color: "#94a3b8",
-              cursor: "pointer",
-            }}
+            className={styles.clearSearch}
             onClick={() => setSearchQuery("")}
           >
             ✕
@@ -54,20 +51,20 @@ export default function Header({
         )}
       </div>
 
-      <div className="topbar-right">
-        <div className="export-wrap">
+      <div className={styles.topbarRight}>
+        <div className={styles.exportWrap}>
           <button
-            className="btn-export"
+            className={styles.btnExport}
             onClick={() => setExportMenu((v) => !v)}
           >
             <span>⬇</span> Export Data
           </button>
           {exportMenu && (
             <div
-              className="export-menu"
+              className={styles.exportMenu}
               onMouseLeave={() => setExportMenu(false)}
             >
-              <div className="export-section-title">📊 Excel Reports</div>
+              <div className={styles.exportSectionTitle}>📊 Excel Reports</div>
               <button
                 onClick={() => {
                   exportToExcel(households, pregnant, children, area);
@@ -77,8 +74,8 @@ export default function Header({
               >
                 💾 Full Workbook (.xlsx)
               </button>
-              <div className="export-divider" />
-              <div className="export-section-title">📄 PDF Documents</div>
+              <div className={styles.exportDivider} />
+              <div className={styles.exportSectionTitle}>📄 PDF Documents</div>
               <button
                 onClick={() => {
                   exportToPDF(

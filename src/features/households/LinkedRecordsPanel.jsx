@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { db, getAgeGroupFromDOB, calcAgeYears, calcAgeFull } from "../../services/db";
-import Modal from "../../components/Modal";
-import ConfirmModal from "../../components/ConfirmModal";
+import { Badge } from "../../components/common";
+import Modal from "../../components/common/Modal";
+import ConfirmModal from "../../components/common/ConfirmModal";
+import { useToast } from "../../contexts/ToastContext";
 
 const EMPTY_PREGNANT = {
   hhNo: "",
@@ -82,8 +84,8 @@ export default function LinkedRecordsPanel({
   defaultTab,
   onClose,
   onRefresh,
-  onToast,
 }) {
+  const { showToast } = useToast();
   const [tab, setTab] = useState(defaultTab || "pregnant");
   const [pregnantList, setPregnantList] = useState([]);
   const [childrenList, setChildrenList] = useState([]);
@@ -115,13 +117,13 @@ export default function LinkedRecordsPanel({
   }
   function savePregnant() {
     if (!editingP.name?.trim()) {
-      onToast("Name is required", "error");
+      showToast("Name is required", "error");
       return;
     }
     db.savePregnant(editingP);
     refreshAll();
     setEditingP(null);
-    onToast("Pregnant record saved! Main sheet updated ⟳");
+    showToast("Pregnant record saved! Main sheet updated ⟳");
   }
 
   function deleteChild(c) {
@@ -142,7 +144,7 @@ export default function LinkedRecordsPanel({
     }
     refreshAll();
     setConfirmDelete(null);
-    onToast("Record moved to Recycle Bin", "error");
+    showToast("Record moved to Recycle Bin", "error");
   }
 
   // ── Children handlers ──────────────────────────────────────────────────────
@@ -154,13 +156,13 @@ export default function LinkedRecordsPanel({
   }
   function saveChild() {
     if (!editingC.name?.trim()) {
-      onToast("Child name required", "error");
+      showToast("Child name required", "error");
       return;
     }
     db.saveChild(editingC);
     refreshAll();
     setEditingC(null);
-    onToast("Child record saved! Main sheet updated ⟳");
+    showToast("Child record saved! Main sheet updated ⟳");
   }
 
   function calcEDD(lmp) {
@@ -189,29 +191,6 @@ export default function LinkedRecordsPanel({
   }
 
   // ── Field helpers ──────────────────────────────────────────────────────────
-  function Row(label, key, type = "text") {
-    return (
-      <tr>
-        <td className="row-labels">{label}</td>
-        <td className="row-inputs">
-          <input
-            className="form-input"
-            type={type}
-            value={editingP[key] ?? ""}
-            onChange={(e) => {
-              const val = e.target.value;
-              setEditingP((p) => {
-                const next = { ...p, [key]: val };
-                if (key === "lmp") next.edd = calcEDD(val);
-                return next;
-              });
-            }}
-          />
-        </td>
-      </tr>
-    );
-  }
-
   function PF(key, label, type = "text") {
     return (
       <div className="report-field">
@@ -409,21 +388,11 @@ export default function LinkedRecordsPanel({
                       </div>
                       <div className="card-right-side" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         {tri && (
-                          <span
-                            className="badge"
-                            style={{
-                              backgroundColor: tri.color + "15",
-                              color: tri.color,
-                              borderColor: tri.color + "30",
-                              borderStyle: "solid",
-                              borderWidth: "1px",
-                              fontSize: "10px",
-                              padding: "2px 8px",
-                              borderRadius: "12px"
-                            }}
+                          <Badge 
+                            variant={tri.color === "#16a34a" ? "green" : tri.color === "#0891b2" ? "blue" : tri.color === "#d97706" ? "amber" : "red"}
                           >
                             {tri.label}
-                          </span>
+                          </Badge>
                         )}
                         <div className="action-btns no-print" onClick={(e) => e.stopPropagation()}>
                           <button
@@ -559,12 +528,9 @@ export default function LinkedRecordsPanel({
                     <div className="record-card-header">
                       <div>
                         <span className="record-name">{c.name}</span>
-                        <span
-                          className={`badge-${col}`}
-                          style={{ marginLeft: 8, fontSize: 11 }}
-                        >
+                        <Badge variant={col} style={{ marginLeft: 8, fontSize: 11 }}>
                           {AGE_GROUP_LABELS[grp] || grp}
-                        </span>
+                        </Badge>
                         <span className="record-meta">
                           {" "}
                           · {c.gender === "F" ? "Female" : "Male"} · Age:{" "}

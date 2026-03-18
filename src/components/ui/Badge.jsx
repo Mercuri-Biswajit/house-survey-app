@@ -1,3 +1,5 @@
+import styles from "./Badge.module.css";
+
 /**
  * Badge – Reusable inline badge/pill component.
  *
@@ -8,7 +10,7 @@
  *   style     – optional inline styles
  */
 export default function Badge({ children, variant = "", onClick, style }) {
-  const className = `badge-${variant}`;
+  const className = styles[`badge-${variant}`] || "";
   return (
     <span
       className={className}

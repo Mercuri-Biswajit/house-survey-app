@@ -85,15 +85,14 @@ export const NAV_ITEMS = [
  *   pregnant    – pregnant data array
  *   children    – children data array
  *   refresh     – function to reload all data
- *   showToast   – function to show toast notifications
  */
+
 export default function AppRoutes({
   stats,
   households,
   pregnant,
   children,
   refresh,
-  showToast,
 }) {
   return (
     <Routes>
@@ -117,7 +116,6 @@ export default function AppRoutes({
             allPregnant={pregnant}
             allChildren={children}
             onRefresh={refresh}
-            onToast={showToast}
           />
         }
       />
@@ -127,7 +125,6 @@ export default function AppRoutes({
           <PregnantTab
             data={pregnant}
             onRefresh={refresh}
-            onToast={showToast}
           />
         }
       />
@@ -139,7 +136,6 @@ export default function AppRoutes({
             data={children}
             filterGroup="under1Month"
             onRefresh={refresh}
-            onToast={showToast}
           />
         }
       />
@@ -150,7 +146,6 @@ export default function AppRoutes({
             data={children}
             filterGroup="1monthTo1year"
             onRefresh={refresh}
-            onToast={showToast}
           />
         }
       />
@@ -161,7 +156,6 @@ export default function AppRoutes({
             data={children}
             filterGroup="1to2years"
             onRefresh={refresh}
-            onToast={showToast}
           />
         }
       />
@@ -171,7 +165,6 @@ export default function AppRoutes({
           <Children2to5Tab
             data={children}
             onRefresh={refresh}
-            onToast={showToast}
           />
         }
       />
@@ -181,7 +174,6 @@ export default function AppRoutes({
           <Children6to18Tab
             data={children}
             onRefresh={refresh}
-            onToast={showToast}
           />
         }
       />
@@ -192,13 +184,12 @@ export default function AppRoutes({
             data={children}
             households={households}
             onRefresh={refresh}
-            onToast={showToast}
           />
         }
       />
       <Route
         path="/recycleBin"
-        element={<RecycleBinTab onRefresh={refresh} onToast={showToast} />}
+        element={<RecycleBinTab onRefresh={refresh} />}
       />
       {/* Catch-all: redirect unknown routes to dashboard */}
       <Route path="*" element={<Navigate to="/dashboard" replace />} />

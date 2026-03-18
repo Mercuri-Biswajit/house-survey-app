@@ -1,8 +1,11 @@
 /* eslint-disable no-unused-vars */
 import { useState, useMemo } from "react";
 import { db, getAgeGroupFromDOB, calcAgeFull } from "../../services/db";
-import Modal from "../../components/Modal";
+import { Badge } from "../../components/common";
+import Modal from "../../components/common/Modal";
 import VaccinationCard from "./VaccinationCard";
+import { useToast } from "../../contexts/ToastContext";
+
 
 const EMPTY = {
   hhNo: "",
@@ -42,7 +45,9 @@ function VaccDot({ done }) {
 
 const allCheckFields = HEALTH_CHECKS.flatMap((g) => g.fields.map((f) => f[0]));
 
-export default function Children6to18Tab({ data, onRefresh, onToast }) {
+export default function Children6to18Tab({ data, onRefresh }) {
+  const { showToast } = useToast();
+
   const [search, setSearch] = useState("");
   const [modal, setModal] = useState(null);
   const [form, setForm] = useState(EMPTY);
@@ -72,17 +77,19 @@ export default function Children6to18Tab({ data, onRefresh, onToast }) {
 
   function handleSave() {
     if (!form.name?.trim()) {
-      onToast("Name required", "error");
+      showToast("Name required", "error");
       return;
     }
     if (!form.hhNo) {
-      onToast("House No. is required", "error");
+      showToast("House No. is required", "error");
       return;
     }
+
     db.saveChild(form);
     onRefresh();
     setModal(null);
-    onToast("Updated! Main sheet updated ⟳");
+    showToast("Updated! Main sheet updated ⟳");
+
   }
 
   function CF(key, label, type = "text") {

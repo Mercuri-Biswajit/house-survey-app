@@ -1,9 +1,12 @@
 /* eslint-disable no-unused-vars */
 import { useState, useMemo } from "react";
 import { db, getAgeGroupFromDOB, calcAgeFull } from "../../services/db";
-import Modal from "../../components/Modal";
-import ConfirmModal from "../../components/ConfirmModal";
+import { Badge } from "../../components/common";
+import Modal from "../../components/common/Modal";
+import ConfirmModal from "../../components/common/ConfirmModal";
 import VaccinationCard from "./VaccinationCard";
+import { useToast } from "../../contexts/ToastContext";
+
 
 const EMPTY_CHILD = {
   hhNo: "",
@@ -131,7 +134,9 @@ const VACC_GROUPS = [
   { label: "১০ বছর (10 Yrs)", fields: [["TD10", "টিটি/টিডি 10"]] }, // Needs mapping or addition to db if not fully modeled. Assuming existing fields might lack these high ages, we represent what we have.
 ];
 
-export default function AllChildrenTab({ data, onRefresh, onToast }) {
+export default function AllChildrenTab({ data, onRefresh }) {
+  const { showToast } = useToast();
+
   const [search, setSearch] = useState("");
   const [modal, setModal] = useState(null);
   const [form, setForm] = useState(EMPTY_CHILD);
@@ -179,13 +184,14 @@ export default function AllChildrenTab({ data, onRefresh, onToast }) {
 
   function handleSave() {
     if (!form.name?.trim()) {
-      onToast("Name is required", "error");
+      showToast("Name is required", "error");
       return;
     }
     if (!form.hhNo) {
-      onToast("House No. is required", "error");
+      showToast("House No. is required", "error");
       return;
     }
+
 
     // Validate Household exists
     const hhNum = Number(form.hhNo);
@@ -193,19 +199,21 @@ export default function AllChildrenTab({ data, onRefresh, onToast }) {
     const existingHouse = households.find((h) => Number(h.id) === hhNum);
 
     if (!existingHouse) {
-      onToast(
+      showToast(
         `Error: Household #${hhNum} does not exist. Please add the household first.`,
         "error",
       );
       return;
     }
 
+
     db.saveChild(form);
     onRefresh();
     setModal(null);
-    onToast(
+    showToast(
       modal === "add" ? `Child added to HH #${hhNum} ⟳` : `Child updated ⟳`,
     );
+
   }
 
   function handleDelete(c) {
@@ -217,7 +225,8 @@ export default function AllChildrenTab({ data, onRefresh, onToast }) {
     db.deleteChild(confirmDelete._id);
     onRefresh();
     setConfirmDelete(null);
-    onToast("Record deleted. Moved to Recycle Bin ⟳", "error");
+    showToast("Record deleted. Moved to Recycle Bin ⟳", "error");
+
   }
 
   function F(key, label, type = "text") {
@@ -328,12 +337,9 @@ export default function AllChildrenTab({ data, onRefresh, onToast }) {
                   <td className="center">{c.gender === "F" ? "F" : "M"}</td>
                   <td className="center">
                     {calcAgeFull(c.dob)}
-                    <span
-                      className={`badge-${col}`}
-                      style={{ marginLeft: 8, fontSize: 10 }}
-                    >
+                    <Badge variant={col} style={{ marginLeft: 8, fontSize: 10 }}>
                       {AGE_GROUP_LABELS[grp] || grp}
-                    </span>
+                    </Badge>
                   </td>
                   <td>{c.guardianName}</td>
                   <td className="mono center">{c.mobile || "—"}</td>

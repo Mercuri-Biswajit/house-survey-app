@@ -1,0 +1,48 @@
+.badge-pink {
+  background: var(--pink-light);
+  color: var(--pink);
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 10.5px;
+}
+.badge-blue {
+  background: var(--teal-light);
+  color: var(--teal);
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 10.5px;
+}
+.badge-purple {
+  background: #ede9fe;
+  color: var(--purple);
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 10.5px;
+}
+.badge-red {
+  background: var(--red-light);
+  color: var(--red);
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 10.5px;
+}
+.badge-teal {
+  background: #ccfbf1;
+  color: #0f766e;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 10.5px;
+}
+.badge-amber {
+  background: var(--amber-light);
+  color: var(--amber);
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 10.5px;
+}
