@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { exportToExcel, exportToPDF } from "../../utils/exportUtils";
+import { importFromExcel } from "../../utils/importUtils";
 import { useToast } from "../../contexts/ToastContext";
 import styles from "./Header.module.css";
-
 
 export default function Header({
   currentLabel,
@@ -13,15 +13,47 @@ export default function Header({
   searchQuery,
   setSearchQuery,
   toggleSidebar,
+  onRefresh,
 }) {
   const { showToast } = useToast();
   const [exportMenu, setExportMenu] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const fileInputRef = useRef(null);
 
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Reset input so same file can be imported again if needed
+    if (fileInputRef.current) fileInputRef.current.value = "";
+
+    setIsImporting(true);
+    try {
+      const counts = await importFromExcel(file);
+      showToast(
+        `✓ Imported: ${counts.households} households, ${counts.pregnant} pregnant, ${counts.children} children`,
+      );
+      if (onRefresh) onRefresh();
+    } catch (err) {
+      console.error("Import error:", err);
+      showToast("❌ Import failed. Please check the file format.", "error");
+    } finally {
+      setIsImporting(false);
+    }
+  };
 
   return (
     <header className={styles.topbar}>
       <div className={styles.topbarLeft}>
-        <button className={styles.btnToggle} onClick={toggleSidebar} title="Toggle Sidebar">
+        <button
+          className={styles.btnToggle}
+          onClick={toggleSidebar}
+          title="Toggle Sidebar"
+        >
           ☰
         </button>
         <div>
@@ -52,6 +84,28 @@ export default function Header({
       </div>
 
       <div className={styles.topbarRight}>
+        <div className={styles.importWrap}>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            accept=".xlsx"
+            style={{ display: "none" }}
+          />
+          <button
+            className={styles.btnImport}
+            onClick={handleImportClick}
+            disabled={isImporting}
+          >
+            {isImporting ? (
+              <span className={styles.spinner}></span>
+            ) : (
+              <span>⬆</span>
+            )}
+            <span>Import Excel</span>
+          </button>
+        </div>
+
         <div className={styles.exportWrap}>
           <button
             className={styles.btnExport}

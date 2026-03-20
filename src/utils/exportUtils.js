@@ -245,7 +245,6 @@ export function exportToPDF(
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const green = [22, 101, 52];
   const lightGreen = [240, 253, 244];
-  const teal = [13, 148, 136];
 
   const addHeader = (title, subtitle) => {
     doc.setFillColor(...green);

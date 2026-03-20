@@ -2,7 +2,7 @@ import householdsData from "../data/households.json";
 import pregnantData from "../data/pregnant.json";
 import childrenData from "../data/children.json";
 
-const KEYS = {
+export const KEYS = {
   households: "hs_households",
   pregnant: "hs_pregnant",
   children: "hs_children",
@@ -82,7 +82,7 @@ function computeSummary(hhNo, pregnant, children) {
   };
 }
 
-function syncAllHouseholds() {
+export function syncAllHouseholds() {
   const households = get(KEYS.households);
   const pregnant = get(KEYS.pregnant);
   const children = get(KEYS.children);

@@ -1,22 +1,22 @@
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 
-export default function MainLayout({ 
-  children, 
-  isSidebarOpen, 
-  toggleSidebar, 
-  activeTab, 
-  navigate, 
-  stats, 
-  area, 
+export default function MainLayout({
+  children,
+  isSidebarOpen,
+  toggleSidebar,
+  activeTab,
+  navigate,
+  stats,
+  area,
   todayStats,
   currentLabel,
   households,
   pregnant,
   allChildren,
-
   searchQuery,
-  setSearchQuery
+  setSearchQuery,
+  onRefresh,
 }) {
   return (
     <div className={`app ${!isSidebarOpen ? "sidebar-collapsed" : ""}`}>
@@ -37,15 +37,13 @@ export default function MainLayout({
           households={households}
           pregnant={pregnant}
           children={allChildren}
-
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           toggleSidebar={toggleSidebar}
+          onRefresh={onRefresh}
         />
 
-        <div className="content">
-          {children}
-        </div>
+        <div className="content">{children}</div>
       </main>
     </div>
   );

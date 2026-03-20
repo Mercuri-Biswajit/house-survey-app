@@ -1,4 +1,3 @@
- 
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAppState } from "./hooks/useAppState";
 import MainLayout from "./components/layout/MainLayout";
@@ -43,9 +42,9 @@ export default function App() {
       households={filteredData.households}
       pregnant={filteredData.pregnant}
       allChildren={filteredData.children}
-
       searchQuery={searchQuery}
       setSearchQuery={setSearchQuery}
+      onRefresh={refresh}
     >
       <AppRoutes
         stats={stats}
