@@ -98,14 +98,14 @@ export default function LinkedRecordsPanel({
     loadData();
   }, [hhNo]);
 
-  function loadData() {
-    setPregnantList(db.getPregnantByHH(hhNo));
-    setChildrenList(db.getChildrenByHH(hhNo));
+  async function loadData() {
+    setPregnantList(await db.getPregnantByHH(hhNo));
+    setChildrenList(await db.getChildrenByHH(hhNo));
   }
 
-  function refreshAll() {
-    loadData();
-    onRefresh();
+  async function refreshAll() {
+    await loadData();
+    await onRefresh();
   }
 
   // ── Pregnant handlers ──────────────────────────────────────────────────────
@@ -115,13 +115,13 @@ export default function LinkedRecordsPanel({
   function editPregnant(p) {
     setEditingP({ ...p });
   }
-  function savePregnant() {
+  async function savePregnant() {
     if (!editingP.name?.trim()) {
       showToast("Name is required", "error");
       return;
     }
-    db.savePregnant(editingP);
-    refreshAll();
+    await db.savePregnant(editingP);
+    await refreshAll();
     setEditingP(null);
     showToast("Pregnant record saved! Main sheet updated ⟳");
   }
@@ -134,15 +134,15 @@ export default function LinkedRecordsPanel({
     setConfirmDelete({ type: "pregnant", item: p });
   }
 
-  function confirmDeleteAction() {
+  async function confirmDeleteAction() {
     if (!confirmDelete) return;
     const { type, item } = confirmDelete;
     if (type === "child") {
-      db.deleteChild(item._id);
+      await db.deleteChild(item._id);
     } else {
-      db.deletePregnant(item._id);
+      await db.deletePregnant(item._id);
     }
-    refreshAll();
+    await refreshAll();
     setConfirmDelete(null);
     showToast("Record moved to Recycle Bin", "error");
   }
@@ -154,13 +154,13 @@ export default function LinkedRecordsPanel({
   function editChild(c) {
     setEditingC({ ...c });
   }
-  function saveChild() {
+  async function saveChild() {
     if (!editingC.name?.trim()) {
       showToast("Child name required", "error");
       return;
     }
-    db.saveChild(editingC);
-    refreshAll();
+    await db.saveChild(editingC);
+    await refreshAll();
     setEditingC(null);
     showToast("Child record saved! Main sheet updated ⟳");
   }

@@ -33,12 +33,17 @@ export default function SettingsTab({ onAreaChange }) {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [dbStats, setDbStats] = useState({ households: 0, pregnant: 0, children: 0, recycleBin: 0 });
 
+  const [isMigrating, setIsMigrating] = useState(false);
+
   useEffect(() => {
-    const hh = db.getHouseholds();
-    const pg = db.getPregnant();
-    const ch = db.getChildren();
-    const rb = db.getRecycleBin();
-    setDbStats({ households: hh.length, pregnant: pg.length, children: ch.length, recycleBin: rb.length });
+    async function loadStats() {
+      const hh = await db.getHouseholds();
+      const pg = await db.getPregnant();
+      const ch = await db.getChildren();
+      const rb = await db.getRecycleBin();
+      setDbStats({ households: hh.length, pregnant: pg.length, children: ch.length, recycleBin: rb.length });
+    }
+    loadStats();
   }, []);
 
   function saveArea() {
@@ -52,21 +57,37 @@ export default function SettingsTab({ onAreaChange }) {
     showToast("✓ ASHA details saved!");
   }
 
-  function handleReset() {
-    db.reset();
+  async function handleReset() {
+    await db.reset();
     setShowResetConfirm(false);
     showToast("Database reset to seed data.", "error");
     setTimeout(() => window.location.reload(), 800);
   }
 
-  function exportBackup() {
+  async function handleMigrate() {
+    if (!window.confirm("This will migrate all local data to Firebase Cloud. Ensure you have internet. Continue?")) return;
+    setIsMigrating(true);
+    showToast("Migration started. Please wait...");
+    try {
+      await db.migrateLocalToFirestore();
+      showToast("✓ Migration complete!", "success");
+      setTimeout(() => window.location.reload(), 1500);
+    } catch (e) {
+      console.error(e);
+      showToast("❌ Migration failed: " + e.message, "error");
+    } finally {
+      setIsMigrating(false);
+    }
+  }
+
+  async function exportBackup() {
     const backup = {
       exportedAt: new Date().toISOString(),
       area,
       asha,
-      households: db.getHouseholds(),
-      pregnant: db.getPregnant(),
-      children: db.getChildren(),
+      households: await db.getHouseholds(),
+      pregnant: await db.getPregnant(),
+      children: await db.getChildren(),
     };
     const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -214,6 +235,19 @@ export default function SettingsTab({ onAreaChange }) {
             </div>
 
             <div className={styles.actionCards}>
+              <div className={styles.actionCard}>
+                <div className={styles.actionTitle}>☁️ Migrate Local Data to Cloud</div>
+                <div className={styles.actionDesc}>Push all offline/local records to the Firebase Cloud. Needs internet.</div>
+                <button 
+                  className={styles.btnAction} 
+                  onClick={handleMigrate}
+                  disabled={isMigrating}
+                  style={{ background: "#0ea5e9", color: "#fff", borderColor: "#0284c7" }}
+                >
+                  {isMigrating ? "☁️ Migrating..." : "☁️ Migrate to Firestore"}
+                </button>
+              </div>
+
               <div className={styles.actionCard}>
                 <div className={styles.actionTitle}>📥 Backup Data</div>
                 <div className={styles.actionDesc}>Download a full JSON backup of all survey data including households, pregnant women, and children records.</div>

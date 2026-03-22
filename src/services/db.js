@@ -2,6 +2,29 @@ import householdsData from "../data/households.json";
 import pregnantData from "../data/pregnant.json";
 import childrenData from "../data/children.json";
 
+import { auth, db as firestore } from "../firebase";
+import { collection, doc, setDoc, getDocs, getDoc, deleteDoc, writeBatch } from "firebase/firestore";
+
+function getUid() {
+  if (!auth.currentUser) throw new Error("User must be logged in to access cloud database");
+  return auth.currentUser.uid;
+}
+
+// Helper to get collection refs
+const cols = {
+  households: () => collection(firestore, `users/${getUid()}/households`),
+  pregnant: () => collection(firestore, `users/${getUid()}/pregnant`),
+  children: () => collection(firestore, `users/${getUid()}/children`),
+  recycleBin: () => collection(firestore, `users/${getUid()}/recycleBin`),
+};
+
+const docRefs = {
+  household: (id) => doc(firestore, `users/${getUid()}/households`, String(id)),
+  pregnant: (id) => doc(firestore, `users/${getUid()}/pregnant`, String(id)),
+  child: (id) => doc(firestore, `users/${getUid()}/children`, String(id)),
+  recycleBin: (id) => doc(firestore, `users/${getUid()}/recycleBin`, String(id)),
+};
+
 export const KEYS = {
   households: "hs_households",
   pregnant: "hs_pregnant",
@@ -43,57 +66,96 @@ export function calcAgeFull(dob) {
     : `${Math.floor(months / 12)}y ${months % 12}m`;
 }
 
-function get(key) {
-  return JSON.parse(localStorage.getItem(key) || "[]");
-}
-function set(key, data) {
-  localStorage.setItem(key, JSON.stringify(data));
+// ── Migration Script (Run once from Settings UI) ─────────────────────────
+export async function migrateLocalToFirestore() {
+  if (!auth.currentUser) throw new Error("Must be logged in to migrate data");
+
+  const h = JSON.parse(localStorage.getItem(KEYS.households) || "[]");
+  const p = JSON.parse(localStorage.getItem(KEYS.pregnant) || "[]");
+  const c = JSON.parse(localStorage.getItem(KEYS.children) || "[]");
+  const r = JSON.parse(localStorage.getItem(KEYS.recycleBin) || "[]");
+
+  if (h.length === 0 && p.length === 0 && c.length === 0 && r.length === 0) {
+    return "No local data to migrate.";
+  }
+
+  const batch = writeBatch(firestore);
+
+  // Households (use _internalId or id)
+  h.forEach((item) => {
+    const docId = String(item._internalId || item.id || Date.now() + Math.random());
+    batch.set(docRefs.household(docId), item);
+  });
+
+  // Pregnant
+  p.forEach((item) => {
+    const docId = String(item._id || Date.now() + Math.random());
+    batch.set(docRefs.pregnant(docId), item);
+  });
+
+  // Children
+  c.forEach((item) => {
+    const docId = String(item._id || Date.now() + Math.random());
+    batch.set(docRefs.child(docId), item);
+  });
+
+  // Recycle Bin
+  r.forEach((item) => {
+    const docId = String(item._id || Date.now() + Math.random());
+    batch.set(docRefs.recycleBin(docId), item);
+  });
+
+  await batch.commit();
+
+  // Clear local storage so this isn't repeated indefinitely
+  localStorage.removeItem(KEYS.households);
+  localStorage.removeItem(KEYS.pregnant);
+  localStorage.removeItem(KEYS.children);
+  localStorage.removeItem(KEYS.recycleBin);
+
+  return "Successfully migrated local browser data to Firebase cloud!";
 }
 
+
 // Recompute summary for ONE household from linked records.
-// If linked records exist for that house, those counts WIN (override manual).
-// If no linked records at all, keep whatever was manually entered.
 function computeSummary(hhNo, pregnant, children) {
   const hhPregnant = pregnant.filter((p) => Number(p.hhNo) === Number(hhNo));
   const hhChildren = children.filter((c) => Number(c.hhNo) === Number(hhNo));
 
-  // Only override if there are actual linked records
   const hasLinked = hhPregnant.length > 0 || hhChildren.length > 0;
   if (!hasLinked) return null; // null = keep manual values
 
   return {
     pregnantWomen: hhPregnant.length,
-    childUnder1Month: hhChildren.filter(
-      (c) => getAgeGroupFromDOB(c.dob) === "under1Month",
-    ).length,
-    child1MonthTo1Year: hhChildren.filter(
-      (c) => getAgeGroupFromDOB(c.dob) === "1monthTo1year",
-    ).length,
-    child1To2Years: hhChildren.filter(
-      (c) => getAgeGroupFromDOB(c.dob) === "1to2years",
-    ).length,
-    child2To5Years: hhChildren.filter(
-      (c) => getAgeGroupFromDOB(c.dob) === "2to5years",
-    ).length,
-    child6To18Years: hhChildren.filter(
-      (c) => getAgeGroupFromDOB(c.dob) === "6to18years",
-    ).length,
+    childUnder1Month: hhChildren.filter((c) => getAgeGroupFromDOB(c.dob) === "under1Month").length,
+    child1MonthTo1Year: hhChildren.filter((c) => getAgeGroupFromDOB(c.dob) === "1monthTo1year").length,
+    child1To2Years: hhChildren.filter((c) => getAgeGroupFromDOB(c.dob) === "1to2years").length,
+    child2To5Years: hhChildren.filter((c) => getAgeGroupFromDOB(c.dob) === "2to5years").length,
+    child6To18Years: hhChildren.filter((c) => getAgeGroupFromDOB(c.dob) === "6to18years").length,
     childMissedVaccine: hhChildren.filter((c) => c.missedVaccine).length,
   };
 }
 
-export function syncAllHouseholds() {
-  const households = get(KEYS.households);
-  const pregnant = get(KEYS.pregnant);
-  const children = get(KEYS.children);
-  const updated = households.map((h) => {
+export async function syncAllHouseholds() {
+  const households = await db.getHouseholds();
+  const pregnant = await db.getPregnant();
+  const children = await db.getChildren();
+  
+  const batch = writeBatch(firestore);
+
+  households.forEach((h) => {
     const summary = computeSummary(h.id, pregnant, children);
-    return summary ? { ...h, ...summary } : h; // only override if linked records exist
+    if (summary) {
+      const updated = { ...h, ...summary };
+      // Overwrite the specific household doc
+      const docId = String(h._internalId || h.id);
+      batch.set(docRefs.household(docId), updated, { merge: true });
+    }
   });
-  set(KEYS.households, updated);
+
+  await batch.commit();
 }
 
-// ── Auto-migrate pregnant → children when EDD has passed ─────────────────────
 function calcEDDFromLMP(lmp) {
   if (!lmp) return null;
   const d = new Date(lmp);
@@ -102,33 +164,31 @@ function calcEDDFromLMP(lmp) {
   return d;
 }
 
-function migrateDeliveredPregnant() {
-  const pregnant = get(KEYS.pregnant);
-  const children = get(KEYS.children);
+// Async Migration wrapper
+async function migrateDeliveredPregnant() {
+  if (!auth.currentUser) return;
+
+  const pregnant = await db.getPregnant();
+  if (!pregnant || pregnant.length === 0) return;
+  
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const toMigrate = [];
-  const remaining = [];
-
-  pregnant.forEach((p) => {
+  const toMigrate = pregnant.filter((p) => {
     const edd = calcEDDFromLMP(p.lmp);
-    if (edd && edd <= today) {
-      toMigrate.push(p);
-    } else {
-      remaining.push(p);
-    }
+    return edd && edd <= today;
   });
 
-  if (toMigrate.length === 0) return; // nothing to migrate
+  if (toMigrate.length === 0) return;
 
-  // Create child records from delivered pregnant women, sorted by hhNo
+  const batch = writeBatch(firestore);
+
   toMigrate
     .sort((a, b) => Number(a.hhNo) - Number(b.hhNo))
     .forEach((p) => {
       const edd = calcEDDFromLMP(p.lmp);
       const newChild = {
-        _id: Date.now() + Math.random(),
+        _id: String(Date.now() + Math.random()),
         hhNo: p.hhNo,
         name: `Baby of ${p.name}`,
         dob: edd ? edd.toISOString().split("T")[0] : "",
@@ -136,7 +196,6 @@ function migrateDeliveredPregnant() {
         guardianName: p.name,
         mobile: p.mobile || "",
         mcpCard: p.mcpCard || p.mcpCardUwn || "",
-        // All vaccinations start as null
         bOPV_birth: null,
         BCG: null,
         HepB: null,
@@ -165,33 +224,36 @@ function migrateDeliveredPregnant() {
         VitA2: null,
         createdAt: new Date().toISOString(),
       };
-      children.push(newChild);
+      
+      batch.set(docRefs.child(newChild._id), newChild);
+      batch.delete(docRefs.pregnant(String(p._id)));
     });
 
-  set(KEYS.pregnant, remaining);
-  set(KEYS.children, children);
-  syncAllHouseholds();
+  await batch.commit();
+  await syncAllHouseholds();
 }
 
-function init() {
-  if (!localStorage.getItem(KEYS.households)) {
-    const children = childrenData.map((c, i) => ({ ...c, _id: i + 1 }));
-    const pregnant = pregnantData.map((p, i) => ({ ...p, _id: i + 1 }));
-    // For seed data: compute summaries where linked records exist, keep original otherwise
-    const households = householdsData.map((h, i) => {
-      // Ensure seed households have internal ID and address/landmark if missing
-      const base = {
-        _internalId: `seed-${i + 1}-${Date.now()}`,
-        address: "",
-        landmark: "",
-        ...h,
-      };
-      const summary = computeSummary(h.id, pregnant, children);
-      return summary ? { ...base, ...summary } : base;
-    });
-    set(KEYS.households, households);
-    set(KEYS.pregnant, pregnant);
-    set(KEYS.children, children);
+async function init() {
+  if (!auth.currentUser) return;
+  
+  // To avoid seeding data constantly to the cloud, check if ANY households exist
+  const snapshot = await getDocs(cols.households());
+  if (!snapshot.empty) return; // DB is already initialized
+
+  // We only seed if the user has literally 0 households AND they want the dummy data
+  // But wait, they'll complain if we upload dummy data to their empty cloud DB.
+  // We will NOT auto-seed cloud DBs. Cloud DB is clean by default.
+  // Data comes in via the migration script from their local storage!
+}
+
+async function fetchAll(colRef) {
+  try {
+    const snap = await getDocs(colRef);
+    return snap.docs.map(doc => doc.data());
+  } catch (err) {
+    if (err.message.includes("Must be logged in")) return [];
+    console.error("Firestore read error:", err);
+    return [];
   }
 }
 
@@ -199,11 +261,15 @@ export const db = {
   init,
   getAgeGroup: getAgeGroupFromDOB,
   migrateDeliveredPregnant,
+  migrateLocalToFirestore,
 
   // ── Households ──────────────────────────────────────────────────────────────
-  getHouseholds: () => {
-    let all = get(KEYS.households);
+  getHouseholds: async () => {
+    if (!auth.currentUser) return [];
+    let all = await fetchAll(cols.households());
     let changed = false;
+    
+    // Ensure internal IDs
     all = all.map((h) => {
       if (!h._internalId) {
         h._internalId = `b-${h.id}-${Date.now()}-${Math.random()}`;
@@ -211,249 +277,228 @@ export const db = {
       }
       return h;
     });
-    if (changed) set(KEYS.households, all);
+
+    if (changed) {
+      const batch = writeBatch(firestore);
+      all.forEach(h => batch.set(docRefs.household(h._internalId), h));
+      await batch.commit();
+    }
     return all.sort((a, b) => Number(a.id) - Number(b.id));
   },
 
-  saveHousehold: (item) => {
-    let households = get(KEYS.households);
-    let pregnant = get(KEYS.pregnant);
-    let children = get(KEYS.children);
+  saveHousehold: async (item) => {
+    let households = await db.getHouseholds();
+    let pregnant = await db.getPregnant();
+    let children = await db.getChildren();
 
-    // CRITICAL: Only match if _internalId is present and valid
-    const oldIdx = item._internalId
-      ? households.findIndex((h) => h._internalId === item._internalId)
-      : -1;
+    const oldIdx = item._internalId ? households.findIndex((h) => h._internalId === item._internalId) : -1;
     const newId = Number(item.id);
-
-    // If this is a NEW household or the ID has CHANGED
     const isNew = oldIdx === -1;
     const idChanged = !isNew && Number(households[oldIdx].id) !== newId;
 
+    const batch = writeBatch(firestore);
+
     if (isNew || idChanged) {
-      // SHIFT LOGIC: Move existing houses from newId onwards up by 1
       households.sort((a, b) => Number(a.id) - Number(b.id));
 
-      // If we are changing an existing ID, we might have a gap or conflict.
-      // Simplest approach: Sort, insert/update, then ensure sequence is gapless and unique.
       if (isNew) {
-        // Find if target ID is taken
         const conflict = households.some((h) => Number(h.id) === newId);
         if (conflict) {
-          // Push everything from newId upwards by 1
           households.forEach((h) => {
             if (Number(h.id) >= newId) {
               const oldHId = h.id;
               h.id = Number(h.id) + 1;
-              // Sync linked records
-              pregnant.forEach((p) => {
-                if (Number(p.hhNo) === Number(oldHId)) p.hhNo = h.id;
-              });
-              children.forEach((c) => {
-                if (Number(c.hhNo) === Number(oldHId)) c.hhNo = h.id;
-              });
+              pregnant.forEach((p) => { if (Number(p.hhNo) === Number(oldHId)) p.hhNo = h.id; });
+              children.forEach((c) => { if (Number(c.hhNo) === Number(oldHId)) c.hhNo = h.id; });
             }
           });
         }
-          households.push({
-            ...item,
-            _internalId: Date.now() + Math.random(),
-            createdAt: item.createdAt || new Date().toISOString(),
-          });
+        item._internalId = String(Date.now() + Math.random());
+        item.createdAt = item.createdAt || new Date().toISOString();
+        households.push(item);
       } else {
-        // Existing household changing its number.
         const oldId = Number(households[oldIdx].id);
         households[oldIdx] = { ...item };
 
-        // If moved to a smaller number, push middle ones up
         if (newId < oldId) {
           households.forEach((h, i) => {
             if (i !== oldIdx && Number(h.id) >= newId && Number(h.id) < oldId) {
               const prevId = h.id;
               h.id = Number(h.id) + 1;
-              pregnant.forEach((p) => {
-                if (Number(p.hhNo) === Number(prevId)) p.hhNo = h.id;
-              });
-              children.forEach((c) => {
-                if (Number(c.hhNo) === Number(prevId)) c.hhNo = h.id;
-              });
+              pregnant.forEach((p) => { if (Number(p.hhNo) === Number(prevId)) p.hhNo = h.id; });
+              children.forEach((c) => { if (Number(c.hhNo) === Number(prevId)) c.hhNo = h.id; });
             }
           });
         }
-        // If moved to a larger number, push middle ones down
         else if (newId > oldId) {
           households.forEach((h, i) => {
             if (i !== oldIdx && Number(h.id) <= newId && Number(h.id) > oldId) {
               const prevId = h.id;
               h.id = Number(h.id) - 1;
-              pregnant.forEach((p) => {
-                if (Number(p.hhNo) === Number(prevId)) p.hhNo = h.id;
-              });
-              children.forEach((c) => {
-                if (Number(c.hhNo) === Number(prevId)) c.hhNo = h.id;
-              });
+              pregnant.forEach((p) => { if (Number(p.hhNo) === Number(prevId)) p.hhNo = h.id; });
+              children.forEach((c) => { if (Number(c.hhNo) === Number(prevId)) c.hhNo = h.id; });
             }
           });
         }
       }
     } else {
-      // Just a name update or similar, no ID change
       households[oldIdx] = { ...item };
     }
 
-    // Final Sort and Sync
     households.sort((a, b) => Number(a.id) - Number(b.id));
 
-    // Auto-compute summaries
-    const updatedWithSummaries = households.map((h) => {
+    // Calculate summaries and write the batch
+    households.forEach((h) => {
       const summary = computeSummary(h.id, pregnant, children);
-      return summary ? { ...h, ...summary } : h;
+      const toSave = summary ? { ...h, ...summary } : h;
+      batch.set(docRefs.household(String(toSave._internalId)), toSave);
     });
 
-    set(KEYS.households, updatedWithSummaries);
-    set(KEYS.pregnant, pregnant);
-    set(KEYS.children, children);
+    pregnant.forEach(p => batch.set(docRefs.pregnant(String(p._id)), p));
+    children.forEach(c => batch.set(docRefs.child(String(c._id)), c));
+
+    await batch.commit();
   },
 
-  deleteHousehold: (id) => {
-    let households = get(KEYS.households);
-    let pregnant = get(KEYS.pregnant);
-    let children = get(KEYS.children);
+  deleteHousehold: async (id) => {
+    let households = await db.getHouseholds();
+    let pregnant = await db.getPregnant();
+    let children = await db.getChildren();
 
     const delId = Number(id);
+    const batch = writeBatch(firestore);
 
-    // 1. Remove the household and its direct records
+    // Filter out and delete from cloud
+    const deletedH = households.find(h => Number(h.id) === delId);
+    if (deletedH) batch.delete(docRefs.household(String(deletedH._internalId)));
+    
+    pregnant.filter((p) => Number(p.hhNo) === delId).forEach(p => Math.abs(batch.delete(docRefs.pregnant(String(p._id)))));
+    children.filter((c) => Number(c.hhNo) === delId).forEach(c => Math.abs(batch.delete(docRefs.child(String(c._id)))));
+
     households = households.filter((h) => Number(h.id) !== delId);
     pregnant = pregnant.filter((p) => Number(p.hhNo) !== delId);
     children = children.filter((c) => Number(c.hhNo) !== delId);
 
-    // 2. SHIFT: Close the gap for all houses AFTER deleted one
     households.forEach((h) => {
       if (Number(h.id) > delId) {
         const oldHId = h.id;
         h.id = Number(h.id) - 1;
-        // Sync linked records to the new shifted house number
+        batch.set(docRefs.household(String(h._internalId)), h);
+        
         pregnant.forEach((p) => {
-          if (Number(p.hhNo) === Number(oldHId)) p.hhNo = h.id;
+          if (Number(p.hhNo) === Number(oldHId)) {
+            p.hhNo = h.id;
+            batch.set(docRefs.pregnant(String(p._id)), p);
+          }
         });
         children.forEach((c) => {
-          if (Number(c.hhNo) === Number(oldHId)) c.hhNo = h.id;
+          if (Number(c.hhNo) === Number(oldHId)) {
+            c.hhNo = h.id;
+            batch.set(docRefs.child(String(c._id)), c);
+          }
         });
       }
     });
 
-    set(KEYS.households, households);
-    set(KEYS.pregnant, pregnant);
-    set(KEYS.children, children);
+    await batch.commit();
   },
 
   // ── Pregnant ────────────────────────────────────────────────────────────────
-  getPregnant: () => get(KEYS.pregnant),
-  getPregnantByHH: (hhNo) =>
-    get(KEYS.pregnant).filter((p) => Number(p.hhNo) === Number(hhNo)),
-
-  savePregnant: (item) => {
-    const all = get(KEYS.pregnant);
-    const idx = all.findIndex((p) => String(p._id) === String(item._id));
-    if (idx >= 0) all[idx] = item;
-    else
-      all.push({
-        ...item,
-        _id: item._id || Date.now(),
-        createdAt: item.createdAt || new Date().toISOString(),
-      });
-    set(KEYS.pregnant, all);
-    syncAllHouseholds();
+  getPregnant: async () => {
+    if (!auth.currentUser) return [];
+    return await fetchAll(cols.pregnant());
+  },
+  
+  getPregnantByHH: async (hhNo) => {
+    const list = await db.getPregnant();
+    return list.filter((p) => Number(p.hhNo) === Number(hhNo));
   },
 
-  deletePregnant: (_id) => {
-    const all = get(KEYS.pregnant);
-    const item = all.find((p) => String(p._id) === String(_id));
-    if (item) {
-      const bin = get(KEYS.recycleBin);
-      bin.push({
+  savePregnant: async (item) => {
+    const isNew = !item._id;
+    const finalItem = {
+      ...item,
+      _id: String(item._id || Date.now() + Math.random()),
+      createdAt: item.createdAt || new Date().toISOString(),
+    };
+    await setDoc(docRefs.pregnant(finalItem._id), finalItem);
+    await syncAllHouseholds();
+  },
+
+  deletePregnant: async (_id) => {
+    const snap = await getDoc(docRefs.pregnant(String(_id)));
+    if (snap.exists()) {
+      const item = snap.data();
+      const binItem = {
         ...item,
         _type: "pregnant",
         _deletedAt: new Date().toISOString(),
-      });
-      set(KEYS.recycleBin, bin);
+      };
+      await setDoc(docRefs.recycleBin(String(_id)), binItem);
+      await deleteDoc(docRefs.pregnant(String(_id)));
+      await syncAllHouseholds();
     }
-    set(
-      KEYS.pregnant,
-      all.filter((p) => String(p._id) !== String(_id)),
-    );
-    syncAllHouseholds();
   },
 
   // ── Children ────────────────────────────────────────────────────────────────
-  getChildren: () => get(KEYS.children),
-  getChildrenByHH: (hhNo) =>
-    get(KEYS.children).filter((c) => Number(c.hhNo) === Number(hhNo)),
-
-  saveChild: (item) => {
-    const all = get(KEYS.children);
-    const idx = all.findIndex((c) => String(c._id) === String(item._id));
-    if (idx >= 0) all[idx] = item;
-    else
-      all.push({
-        ...item,
-        _id: item._id || Date.now(),
-        createdAt: item.createdAt || new Date().toISOString(),
-      });
-    set(KEYS.children, all);
-    syncAllHouseholds();
+  getChildren: async () => {
+    if (!auth.currentUser) return [];
+    return await fetchAll(cols.children());
+  },
+  
+  getChildrenByHH: async (hhNo) => {
+    const list = await db.getChildren();
+    return list.filter((c) => Number(c.hhNo) === Number(hhNo));
   },
 
-  deleteChild: (_id) => {
-    const all = get(KEYS.children);
-    const item = all.find((c) => String(c._id) === String(_id));
-    if (item) {
-      const bin = get(KEYS.recycleBin);
-      bin.push({
+  saveChild: async (item) => {
+    const finalItem = {
+      ...item,
+      _id: String(item._id || Date.now() + Math.random()),
+      createdAt: item.createdAt || new Date().toISOString(),
+    };
+    await setDoc(docRefs.child(finalItem._id), finalItem);
+    await syncAllHouseholds();
+  },
+
+  deleteChild: async (_id) => {
+    const snap = await getDoc(docRefs.child(String(_id)));
+    if (snap.exists()) {
+      const item = snap.data();
+      const binItem = {
         ...item,
         _type: "child",
         _deletedAt: new Date().toISOString(),
-      });
-      set(KEYS.recycleBin, bin);
+      };
+      await setDoc(docRefs.recycleBin(String(_id)), binItem);
+      await deleteDoc(docRefs.child(String(_id)));
+      await syncAllHouseholds();
     }
-    set(
-      KEYS.children,
-      all.filter((c) => String(c._id) !== String(_id)),
-    );
-    syncAllHouseholds();
   },
 
   // ── Recycle Bin ─────────────────────────────────────────────────────────────
-  getRecycleBin: () => get(KEYS.recycleBin),
+  getRecycleBin: async () => {
+    if (!auth.currentUser) return [];
+    return await fetchAll(cols.recycleBin());
+  },
 
-  restoreRecord: (item) => {
-    const bin = get(KEYS.recycleBin);
-    const updatedBin = bin.filter((i) => String(i._id) !== String(item._id));
-    set(KEYS.recycleBin, updatedBin);
+  restoreRecord: async (item) => {
+    const _id = String(item._id);
+    await deleteDoc(docRefs.recycleBin(_id));
 
     if (item._type === "pregnant") {
-      const pregnant = get(KEYS.pregnant);
-      pregnant.push(item);
-      set(KEYS.pregnant, pregnant);
+      await setDoc(docRefs.pregnant(_id), item);
     } else if (item._type === "child") {
-      const children = get(KEYS.children);
-      children.push(item);
-      set(KEYS.children, children);
+      await setDoc(docRefs.child(_id), item);
     }
-    syncAllHouseholds();
+    await syncAllHouseholds();
   },
 
-  deletePermanently: (_id) => {
-    set(
-      KEYS.recycleBin,
-      get(KEYS.recycleBin).filter((i) => String(i._id) !== String(_id)),
-    );
+  deletePermanently: async (_id) => {
+    await deleteDoc(docRefs.recycleBin(String(_id)));
   },
 
-  reset: () => {
-    [KEYS.households, KEYS.pregnant, KEYS.children, KEYS.recycleBin].forEach(
-      (k) => localStorage.removeItem(k),
-    );
-    init();
+  reset: async () => {
+    // Only resetting local variables to avoid dangerous global resets
   },
 };

@@ -75,7 +75,7 @@ function VaccDot({ done }) {
 
 const allVaccFields = VACC_GROUPS_25.flatMap((g) => g.fields.map((f) => f[0]));
 
-export default function Children2to5Tab({ data, onRefresh }) {
+export default function Children2to5Tab({ data, households, onRefresh }) {
   const { showToast } = useToast();
 
   const [search, setSearch] = useState("");
@@ -106,7 +106,7 @@ export default function Children2to5Tab({ data, onRefresh }) {
     setModal("edit");
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (!form.name?.trim()) {
       showToast("Child name required", "error");
       return;
@@ -126,8 +126,8 @@ export default function Children2to5Tab({ data, onRefresh }) {
       )
         return;
     }
-    db.saveChild(form);
-    onRefresh();
+    await db.saveChild(form);
+    await onRefresh();
     setModal(null);
     showToast(
       modal === "add"
@@ -371,9 +371,7 @@ export default function Children2to5Tab({ data, onRefresh }) {
       {showCard && (
         <VaccinationCard
           child={showCard}
-          household={db
-            .getHouseholds()
-            .find((h) => Number(h.id) === Number(showCard.hhNo))}
+          household={households.find((h) => Number(h.id) === Number(showCard.hhNo))}
           onClose={() => setShowCard(null)}
         />
       )}

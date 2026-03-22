@@ -63,7 +63,7 @@ export default function HouseholdsTab({ data, onRefresh }) {
     setModal("view");
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (!form.headName?.trim()) {
       showToast("Head of family name is required", "error");
       return;
@@ -73,7 +73,7 @@ export default function HouseholdsTab({ data, onRefresh }) {
       return;
     }
 
-    db.saveHousehold({
+    await db.saveHousehold({
       ...form,
       id: Number(form.id),
       familyMembers: Number(form.familyMembers) || 0,
@@ -85,7 +85,7 @@ export default function HouseholdsTab({ data, onRefresh }) {
       child6To18Years: Number(form.child6To18Years) || 0,
       childMissedVaccine: Number(form.childMissedVaccine) || 0,
     });
-    onRefresh();
+    await onRefresh();
     setModal(null);
     showToast(
       modal === "add"
@@ -98,10 +98,10 @@ export default function HouseholdsTab({ data, onRefresh }) {
     setConfirmDelete(id);
   }
 
-  function confirmDeleteAction() {
+  async function confirmDeleteAction() {
     if (!confirmDelete) return;
-    db.deleteHousehold(confirmDelete);
-    onRefresh();
+    await db.deleteHousehold(confirmDelete);
+    await onRefresh();
     setConfirmDelete(null);
     showToast("Household deleted", "error");
   }

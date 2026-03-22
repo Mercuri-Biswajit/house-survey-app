@@ -6,16 +6,11 @@ import ConfirmModal from "../../components/common/ConfirmModal";
 import { useToast } from "../../contexts/ToastContext";
 
 
-export default function RecycleBinTab({ onRefresh }) {
+export default function RecycleBinTab({ data, onRefresh }) {
   const { showToast } = useToast();
 
-  const [data, setData] = useState([]);
   const [search, setSearch] = useState("");
   const [confirmAction, setConfirmAction] = useState(null); // { type, item, message }
-
-  useEffect(() => {
-    setData(db.getRecycleBin());
-  }, []);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -59,28 +54,28 @@ export default function RecycleBinTab({ onRefresh }) {
     });
   }
 
-  function executeConfirmedAction() {
+  async function executeConfirmedAction() {
     if (!confirmAction) return;
 
     const { type, item } = confirmAction;
 
     if (type === "restore") {
-      db.restoreRecord(item);
+      await db.restoreRecord(item);
       showToast(`${item.name} restored successfully!`);
 
     } else if (type === "permanent") {
-      db.deletePermanently(item._id);
+      await db.deletePermanently(item._id);
       showToast(`Record for ${item.name} erased permanently.`, "error");
 
     } else if (type === "empty") {
-      data.forEach((i) => db.deletePermanently(i._id));
+      for (const i of data) {
+         await db.deletePermanently(i._id);
+      }
       showToast("Recycle Bin emptied.", "error");
 
     }
 
-    const updated = db.getRecycleBin();
-    setData(updated);
-    onRefresh();
+    await onRefresh();
     setConfirmAction(null);
   }
 

@@ -106,7 +106,7 @@ function VaccDot({ done }) {
 
 const allVaccFields = VACC_GROUPS.flatMap((g) => g.fields.map((f) => f[0]));
 
-export default function ChildrenTab({ data, filterGroup, onRefresh }) {
+export default function ChildrenTab({ data, filterGroup, households, onRefresh }) {
   const { showToast } = useToast();
 
   const [search, setSearch] = useState("");
@@ -138,7 +138,7 @@ export default function ChildrenTab({ data, filterGroup, onRefresh }) {
     setModal("edit");
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (!form.name?.trim()) {
       showToast("Child name required", "error");
       return;
@@ -148,8 +148,8 @@ export default function ChildrenTab({ data, filterGroup, onRefresh }) {
       return;
     }
 
-    db.saveChild(form);
-    onRefresh();
+    await db.saveChild(form);
+    await onRefresh();
     setModal(null);
     showToast(
       modal === "add"
@@ -163,10 +163,10 @@ export default function ChildrenTab({ data, filterGroup, onRefresh }) {
     setConfirmDelete(c);
   }
 
-  function confirmDeleteAction() {
+  async function confirmDeleteAction() {
     if (!confirmDelete) return;
-    db.deleteChild(confirmDelete._id);
-    onRefresh();
+    await db.deleteChild(confirmDelete._id);
+    await onRefresh();
     setConfirmDelete(null);
     showToast("Record moved to Recycle Bin ⟳", "error");
 
@@ -411,9 +411,7 @@ export default function ChildrenTab({ data, filterGroup, onRefresh }) {
       {showCard && (
         <VaccinationCard
           child={showCard}
-          household={db
-            .getHouseholds()
-            .find((h) => Number(h.id) === Number(showCard.hhNo))}
+          household={households.find((h) => Number(h.id) === Number(showCard.hhNo))}
           onClose={() => setShowCard(null)}
         />
       )}

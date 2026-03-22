@@ -50,20 +50,23 @@ export function useAppState() {
   // Debounce search for performance
   const debouncedSearch = useDebounce(searchQuery, 250);
 
-  const refresh = useCallback(() => {
-    db.migrateDeliveredPregnant();
-    setHouseholds(db.getHouseholds());
-    setPregnant(db.getPregnant());
-    setChildren(db.getChildren());
-    setRecycleBin(db.getRecycleBin());
+  const refresh = useCallback(async () => {
+    await db.migrateDeliveredPregnant();
+    const h = await db.getHouseholds();
+    const p = await db.getPregnant();
+    const c = await db.getChildren();
+    const r = await db.getRecycleBin();
+    setHouseholds(h);
+    setPregnant(p);
+    setChildren(c);
+    setRecycleBin(r);
     // Refresh area from localStorage in case settings changed
     const savedArea = localStorage.getItem("survey_area");
     if (savedArea) setArea(JSON.parse(savedArea));
   }, []);
 
   useEffect(() => {
-    db.init();
-    refresh();
+    db.init().then(() => refresh());
   }, [refresh]);
 
   // Listen for sidebar toggle on window resize

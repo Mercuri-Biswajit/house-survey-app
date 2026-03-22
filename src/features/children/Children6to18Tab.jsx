@@ -45,7 +45,7 @@ function VaccDot({ done }) {
 
 const allCheckFields = HEALTH_CHECKS.flatMap((g) => g.fields.map((f) => f[0]));
 
-export default function Children6to18Tab({ data, onRefresh }) {
+export default function Children6to18Tab({ data, households, onRefresh }) {
   const { showToast } = useToast();
 
   const [search, setSearch] = useState("");
@@ -75,7 +75,7 @@ export default function Children6to18Tab({ data, onRefresh }) {
     setModal("edit");
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (!form.name?.trim()) {
       showToast("Name required", "error");
       return;
@@ -85,8 +85,8 @@ export default function Children6to18Tab({ data, onRefresh }) {
       return;
     }
 
-    db.saveChild(form);
-    onRefresh();
+    await db.saveChild(form);
+    await onRefresh();
     setModal(null);
     showToast("Updated! Main sheet updated ⟳");
 
@@ -232,7 +232,10 @@ export default function Children6to18Tab({ data, onRefresh }) {
           onClose={() => setShowCard(null)}
           wide
         >
-          <VaccinationCard child={showCard} />
+          <VaccinationCard 
+            child={showCard} 
+            household={households?.find((h) => Number(h.id) === Number(showCard.hhNo))}
+          />
         </Modal>
       )}
 

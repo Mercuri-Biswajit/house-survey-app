@@ -73,7 +73,7 @@ export default function PregnantTab({ data, onRefresh }) {
     setModal("edit");
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (!form.name?.trim()) {
       showToast("Name is required", "error");
       return;
@@ -82,8 +82,8 @@ export default function PregnantTab({ data, onRefresh }) {
       showToast("House No. is required", "error");
       return;
     }
-    db.savePregnant(form);
-    onRefresh();
+    await db.savePregnant(form);
+    await onRefresh();
     setModal(null);
     showToast(
       modal === "add"
@@ -97,10 +97,10 @@ export default function PregnantTab({ data, onRefresh }) {
     setConfirmDelete(p);
   }
 
-  function confirmDeleteAction() {
+  async function confirmDeleteAction() {
     if (!confirmDelete) return;
-    db.deletePregnant(confirmDelete._id);
-    onRefresh();
+    await db.deletePregnant(confirmDelete._id);
+    await onRefresh();
     setConfirmDelete(null);
     showToast("Record moved to Recycle Bin ⟳", "error");
   }

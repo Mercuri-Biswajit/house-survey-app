@@ -134,7 +134,7 @@ const VACC_GROUPS = [
   { label: "১০ বছর (10 Yrs)", fields: [["TD10", "টিটি/টিডি 10"]] }, // Needs mapping or addition to db if not fully modeled. Assuming existing fields might lack these high ages, we represent what we have.
 ];
 
-export default function AllChildrenTab({ data, onRefresh }) {
+export default function AllChildrenTab({ data, households, onRefresh }) {
   const { showToast } = useToast();
 
   const [search, setSearch] = useState("");
@@ -182,7 +182,7 @@ export default function AllChildrenTab({ data, onRefresh }) {
     setModal("view");
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (!form.name?.trim()) {
       showToast("Name is required", "error");
       return;
@@ -195,8 +195,7 @@ export default function AllChildrenTab({ data, onRefresh }) {
 
     // Validate Household exists
     const hhNum = Number(form.hhNo);
-    const households = db.getHouseholds();
-    const existingHouse = households.find((h) => Number(h.id) === hhNum);
+    const existingHouse = households?.find((h) => Number(h.id) === hhNum);
 
     if (!existingHouse) {
       showToast(
@@ -207,8 +206,8 @@ export default function AllChildrenTab({ data, onRefresh }) {
     }
 
 
-    db.saveChild(form);
-    onRefresh();
+    await db.saveChild(form);
+    await onRefresh();
     setModal(null);
     showToast(
       modal === "add" ? `Child added to HH #${hhNum} ⟳` : `Child updated ⟳`,
@@ -220,10 +219,10 @@ export default function AllChildrenTab({ data, onRefresh }) {
     setConfirmDelete(c);
   }
 
-  function confirmDeleteAction() {
+  async function confirmDeleteAction() {
     if (!confirmDelete) return;
-    db.deleteChild(confirmDelete._id);
-    onRefresh();
+    await db.deleteChild(confirmDelete._id);
+    await onRefresh();
     setConfirmDelete(null);
     showToast("Record deleted. Moved to Recycle Bin ⟳", "error");
 

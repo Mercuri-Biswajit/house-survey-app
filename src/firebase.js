@@ -16,8 +16,7 @@
 
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
-// import { getFirestore } from "firebase/firestore"; // Uncomment for Firestore
-// import { getDatabase } from "firebase/database";   // Uncomment for Realtime DB
+import { getFirestore } from "firebase/firestore";
 
 // ── Paste your Firebase config here ──────────────────────────────────────────
 const firebaseConfig = {
@@ -35,8 +34,7 @@ const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: "select_account" });
 
-// const db = getFirestore(app); // Uncomment when you add Firestore
+const db = getFirestore(app);
 
-export { auth, googleProvider };
-// export { db }; // Uncomment when you add Firestore
+export { auth, googleProvider, db };
 export default app;

@@ -73,6 +73,7 @@ export default function AppRoutes({
   households,
   pregnant,
   children,
+  recycleBin,
   refresh,
 }) {
   return (
@@ -123,6 +124,7 @@ export default function AppRoutes({
         element={
           <ChildrenTab
             data={children}
+            households={households}
             filterGroup="under1Month"
             onRefresh={refresh}
           />
@@ -133,6 +135,7 @@ export default function AppRoutes({
         element={
           <ChildrenTab
             data={children}
+            households={households}
             filterGroup="1monthTo1year"
             onRefresh={refresh}
           />
@@ -143,6 +146,7 @@ export default function AppRoutes({
         element={
           <ChildrenTab
             data={children}
+            households={households}
             filterGroup="1to2years"
             onRefresh={refresh}
           />
@@ -153,6 +157,7 @@ export default function AppRoutes({
         element={
           <Children2to5Tab
             data={children}
+            households={households}
             onRefresh={refresh}
           />
         }
@@ -162,6 +167,7 @@ export default function AppRoutes({
         element={
           <Children6to18Tab
             data={children}
+            households={households}
             onRefresh={refresh}
           />
         }
@@ -178,7 +184,7 @@ export default function AppRoutes({
       />
       <Route
         path="/recycleBin"
-        element={<RecycleBinTab onRefresh={refresh} />}
+        element={<RecycleBinTab data={recycleBin} onRefresh={refresh} />}
       />
       <Route
         path="/settings"
