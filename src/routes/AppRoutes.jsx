@@ -1,12 +1,4 @@
 /* eslint-disable react-refresh/only-export-components */
-/**
- * AppRoutes – Central routing configuration.
- *
- * This file maps route paths to feature tab components.
- * It uses React Router for declarative navigation.
- *
- * All routes are rendered inside the main content area of the app layout.
- */
 import { Routes, Route, Navigate } from "react-router-dom";
 import HouseholdsTab from "../features/households/HouseholdsTab";
 import PregnantTab from "../features/pregnant/PregnantTab";
@@ -16,13 +8,12 @@ import Children2to5Tab from "../features/children/Children2to5Tab";
 import AllChildrenTab from "../features/children/AllChildrenTab";
 import DashboardTab from "../features/dashboard/DashboardTab";
 import RecycleBinTab from "../features/recycle-bin/RecycleBinTab";
+import AlertsTab from "../features/alerts/AlertsTab";
+import SettingsTab from "../features/settings/SettingsTab";
 
-/**
- * NAV_ITEMS – Navigation config used by Sidebar and routing.
- * Each item has: id (used as route path), label, icon, and optional badge config.
- */
 export const NAV_ITEMS = [
   { id: "dashboard", label: "Dashboard", icon: "▦" },
+  { id: "alerts", label: "Alerts & Due Dates", icon: "🔔", badgeKey: "overdueCount", badgeColor: "red" },
   { id: "households", label: "Households", icon: "⌂", badgeKey: "totalHouses" },
   {
     id: "pregnant",
@@ -74,18 +65,8 @@ export const NAV_ITEMS = [
     badgeKey: "totalDeleted",
     badgeColor: "red",
   },
+  { id: "settings", label: "Settings", icon: "⚙" },
 ];
-
-/**
- * AppRoutes component renders the correct feature tab based on URL.
- *
- * Props:
- *   stats       – dashboard stats object
- *   households  – households data array
- *   pregnant    – pregnant data array
- *   children    – children data array
- *   refresh     – function to reload all data
- */
 
 export default function AppRoutes({
   stats,
@@ -109,6 +90,15 @@ export default function AppRoutes({
         }
       />
       <Route
+        path="/alerts"
+        element={
+          <AlertsTab
+            children={children}
+            pregnant={pregnant}
+          />
+        }
+      />
+      <Route
         path="/households"
         element={
           <HouseholdsTab
@@ -128,7 +118,6 @@ export default function AppRoutes({
           />
         }
       />
-      {/* Children age group routes – all use ChildrenTab with different filterGroup */}
       <Route
         path="/under1Month"
         element={
@@ -191,7 +180,10 @@ export default function AppRoutes({
         path="/recycleBin"
         element={<RecycleBinTab onRefresh={refresh} />}
       />
-      {/* Catch-all: redirect unknown routes to dashboard */}
+      <Route
+        path="/settings"
+        element={<SettingsTab onAreaChange={refresh} />}
+      />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );

@@ -21,6 +21,7 @@ export default function Sidebar({
           display: isOpen && window.innerWidth <= 1024 ? "block" : "none",
           background: "rgba(0,0,0,0.3)",
           position: "fixed",
+          inset: 0,
           zIndex: 95,
         }}
         onClick={toggleSidebar}
@@ -42,51 +43,61 @@ export default function Sidebar({
         </div>
 
         <nav className={styles.sidebarNav}>
-          {NAV_ITEMS.map((n) => (
-            <button
-              key={n.id}
-              className={`${styles.navItem} ${activeTab === n.id ? styles.active : ""}`}
-              onClick={() => {
-                navigate(`/${n.id}`);
-                if (window.innerWidth <= 1024) toggleSidebar();
-              }}
-            >
-              <span className={styles.navIcon}>{n.icon}</span>
-              <span>{n.label}</span>
-              {n.badgeKey && stats[n.badgeKey] !== undefined && (
-                <Badge 
-                  variant={n.badgeColor || "dim"} 
-                  style={{ marginLeft: "auto", fontSize: "10px" }}
-                >
-                  {stats[n.badgeKey]}
-                </Badge>
-              )}
-            </button>
-          ))}
+          {NAV_ITEMS.map((n) => {
+            const badgeVal = n.badgeKey ? stats[n.badgeKey] : undefined;
+            const showBadge = badgeVal !== undefined && badgeVal > 0;
+            return (
+              <button
+                key={n.id}
+                className={`${styles.navItem} ${activeTab === n.id ? styles.active : ""}`}
+                onClick={() => {
+                  navigate(`/${n.id}`);
+                  if (window.innerWidth <= 1024) toggleSidebar();
+                }}
+              >
+                <span className={styles.navIcon}>{n.icon}</span>
+                <span className={styles.navLabel}>{n.label}</span>
+                {showBadge && (
+                  <Badge
+                    variant={n.badgeColor || "dim"}
+                    style={{ marginLeft: "auto", fontSize: "10px", flexShrink: 0 }}
+                  >
+                    {badgeVal}
+                  </Badge>
+                )}
+              </button>
+            );
+          })}
         </nav>
 
         {/* Today's Status */}
         <div className={styles.sidebarStats}>
           <div className={styles.statMiniCard}>
-            <div className={styles.statMiniLabel}>Today's Surveys</div>
+            <div className={styles.statMiniLabel}>Today's Activity</div>
             <div className={styles.statMiniValue}>{todayStats?.surveys || 0}</div>
-            <div
-              style={{
-                fontSize: "9px",
-                color: "rgba(255,255,255,0.3)",
-                marginTop: "4px",
-              }}
-            >
+            <div className={styles.statMiniSub}>
               +{todayStats?.pregnant || 0} Preg • +{todayStats?.children || 0} Child
             </div>
           </div>
         </div>
 
         <div className={styles.sidebarFooter}>
-          <div className={styles.metaLine}>ASHA: Jaba Rani Barman</div>
-          <div className={styles.metaLine}>ANM: Beauty Roy</div>
           <div className={styles.metaLine}>
-            Village: {area?.village}, {area?.block}
+            {(() => {
+              const asha = localStorage.getItem("survey_asha");
+              const parsed = asha ? JSON.parse(asha) : null;
+              return parsed?.ashaName || "Jaba Rani Barman";
+            })()}
+          </div>
+          <div className={styles.metaLine}>
+            ANM: {(() => {
+              const asha = localStorage.getItem("survey_asha");
+              const parsed = asha ? JSON.parse(asha) : null;
+              return parsed?.anmName || "Beauty Roy";
+            })()}
+          </div>
+          <div className={styles.metaLine}>
+            {area?.village}, {area?.block}
           </div>
         </div>
       </aside>

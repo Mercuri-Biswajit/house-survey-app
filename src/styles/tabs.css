@@ -2,21 +2,108 @@
   margin-bottom: 0 !important;
 }
 
-/* Dashboard Tab */
+/* ── Quick Stats Bar ─────────────────────────────────────────────────────── */
+.quick-stats-bar {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+}
+
+.quick-stat {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+  transition: all 0.15s;
+}
+
+.quick-stat:hover {
+  box-shadow: var(--shadow);
+  transform: translateY(-1px);
+}
+
+.quick-stat-warn {
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+
+.quick-stat-danger {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.quick-stat-icon {
+  font-size: 18px;
+}
+
+.quick-stat-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1;
+}
+
+.quick-stat-warn .quick-stat-value {
+  color: #b45309;
+}
+
+.quick-stat-danger .quick-stat-value {
+  color: var(--red);
+}
+
+.quick-stat-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1.3;
+}
+
+@media (max-width: 1200px) {
+  .quick-stats-bar {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ── Dashboard Tab ─────────────────────────────────────────────────────────── */
 .dashboard {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
+
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 12px;
 }
+
+@media (max-width: 1400px) {
+  .stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .quick-stats-bar {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 .stat-card {
   background: var(--bg2);
   border-radius: var(--radius);
-  padding: 18px 20px;
+  padding: 16px 14px;
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
   display: flex;
@@ -24,34 +111,37 @@
   align-items: center;
   text-align: center;
   position: relative;
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
+
 .stat-card:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
 }
+
 .stat-value {
-  font-size: 38px;
+  font-size: 34px;
   font-weight: 800;
   color: var(--text);
   line-height: 1;
 }
+
 .stat-label {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 800;
   color: var(--accent);
   text-transform: uppercase;
   letter-spacing: 0.08em;
+  margin-bottom: 6px;
 }
 
 .stat-value-wrap {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-top: 8px;
+  gap: 8px;
+  margin-top: 6px;
 }
+
 .stat-btn {
   width: 20px;
   height: 20px;
@@ -66,6 +156,7 @@
   color: var(--text2);
   transition: all 0.15s;
 }
+
 .stat-btn:hover {
   background: var(--bg);
   border-color: var(--text3);
@@ -74,18 +165,23 @@
 .stat-card-pink .stat-label {
   color: var(--pink);
 }
+
 .stat-card-blue .stat-label {
   color: var(--teal);
 }
+
 .stat-card-teal .stat-label {
   color: #0d9488;
 }
+
 .stat-card-blue2 .stat-label {
   color: #2563eb;
 }
+
 .stat-card-purple .stat-label {
   color: var(--purple);
 }
+
 .stat-card-red .stat-label {
   color: var(--red);
 }
@@ -93,8 +189,9 @@
 .dashboard-panels {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: 16px;
 }
+
 .panel {
   background: var(--bg2);
   border-radius: var(--radius);
@@ -104,22 +201,26 @@
   flex-direction: column;
   overflow: hidden;
 }
+
 .panel-wide {
   grid-column: span 2;
 }
+
 .panel-header {
-  padding: 14px 20px;
+  padding: 12px 18px;
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between;
   background: #f8faf9;
 }
+
 .panel-title {
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 700;
   color: var(--text);
 }
+
 .panel-tag {
   font-size: 10px;
   font-weight: 700;
@@ -129,75 +230,89 @@
   border-radius: 4px;
   text-transform: uppercase;
 }
+
 .panel-body {
-  padding: 20px;
+  padding: 16px 18px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .mini-bar-row {
   display: grid;
-  grid-template-columns: 80px 1fr 40px;
+  grid-template-columns: 80px 1fr 36px;
   align-items: center;
-  gap: 15px;
+  gap: 12px;
 }
+
 .mini-bar-label {
   font-size: 12px;
   font-weight: 600;
   color: var(--text2);
 }
+
 .mini-bar-track {
-  height: 8px;
+  height: 7px;
   background: #f1f5f9;
   border-radius: 4px;
   overflow: hidden;
 }
+
 .mini-bar-fill {
   height: 100%;
   border-radius: 4px;
-  transition: width 0.4s ease-out;
+  transition: width 0.5s ease-out;
 }
+
 .mini-bar-val {
   font-size: 12px;
   font-weight: 700;
   color: var(--text);
   text-align: right;
 }
+
 .coverage-note {
   font-size: 11px;
   color: var(--text3);
-  margin-top: 5px;
+  margin-top: 4px;
   font-style: italic;
 }
 
 .family-row {
   display: grid;
-  grid-template-columns: 50px 180px 1fr 40px;
+  grid-template-columns: 50px 1fr 120px 36px;
   align-items: center;
-  gap: 15px;
-  padding: 4px 0;
+  gap: 12px;
+  padding: 3px 0;
 }
+
 .family-no {
   font-family: var(--mono);
   font-size: 11px;
   color: var(--text3);
 }
+
 .family-name {
   font-size: 13px;
   font-weight: 600;
   color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
+
 .family-bar-track {
   height: 6px;
   background: #f1f5f9;
   border-radius: 3px;
 }
+
 .family-bar-fill {
   height: 100%;
   background: var(--green);
   border-radius: 3px;
 }
+
 .family-count {
   font-size: 13px;
   font-weight: 700;
@@ -211,23 +326,27 @@
   gap: 12px;
   padding: 4px 0;
 }
+
 .age-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
+  flex-shrink: 0;
 }
+
 .age-label {
   font-size: 13px;
   color: var(--text2);
   flex: 1;
 }
+
 .age-val {
   font-size: 13px;
   font-weight: 700;
   color: var(--text);
 }
 
-/* Pregnant Tab & Report */
+/* ── Pregnant Tab & Report ──────────────────────────────────────────────────── */
 .preg-card {
   background: var(--bg2);
   border-radius: var(--radius);
@@ -240,11 +359,13 @@
   transition: all 0.2s;
   position: relative;
 }
+
 .preg-card:hover {
   box-shadow: var(--shadow-lg);
   transform: translateY(-2px);
   border-color: var(--pink-light);
 }
+
 .preg-name {
   font-size: 16px;
   font-weight: 700;
@@ -253,6 +374,7 @@
   align-items: center;
   gap: 8px;
 }
+
 .preg-card-meta {
   display: flex;
   flex-direction: column;
@@ -264,6 +386,7 @@
   border-radius: 8px;
   border: 1px solid #fbcfe8;
 }
+
 .preg-meta-item {
   display: flex;
   justify-content: space-between;
@@ -271,10 +394,12 @@
   border-bottom: 1px solid rgba(251, 207, 232, 0.5);
   padding-bottom: 6px;
 }
+
 .preg-meta-item:last-child {
   border-bottom: none;
   padding-bottom: 0;
 }
+
 .preg-meta-label {
   font-weight: 700;
   color: #9d174d;
@@ -289,6 +414,7 @@
   gap: 10px;
   margin-top: 4px;
 }
+
 .preg-detail {
   display: flex;
   justify-content: space-between;
@@ -297,6 +423,7 @@
   color: var(--text2);
   padding: 0 4px;
 }
+
 .preg-detail span {
   color: var(--text3);
   font-weight: 500;
@@ -410,16 +537,19 @@
   text-align: center;
   border-radius: 6px;
 }
+
 .preg-card-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 12px;
 }
+
 .clickable-name {
   cursor: pointer;
   flex: 1;
 }
+
 .preg-meta {
   display: flex;
   align-items: center;
@@ -428,6 +558,7 @@
   font-size: 13px;
   color: var(--text2);
 }
+
 .house-no {
   background: var(--sidebar);
   color: rgba(255, 255, 255, 0.9);
@@ -438,6 +569,7 @@
   text-transform: uppercase;
   letter-spacing: 0.02em;
 }
+
 .badge {
   font-size: 11px;
   font-weight: 700;
@@ -455,6 +587,7 @@
   flex-direction: column;
   gap: 8px;
 }
+
 .progress-label {
   display: flex;
   justify-content: space-between;
@@ -462,19 +595,23 @@
   font-weight: 600;
   color: var(--text2);
 }
+
 .progress-track {
   height: 6px;
   background: #f1f5f9;
   border-radius: 3px;
   overflow: hidden;
 }
+
 .progress-fill {
   height: 100%;
   border-radius: 3px;
 }
+
 .progress-fill.pink {
   background: var(--pink);
 }
+
 .progress-fill.teal {
   background: var(--teal);
 }
@@ -495,6 +632,7 @@
   padding-bottom: 16px;
   position: relative;
 }
+
 .report-main-title {
   color: var(--pink);
   font-size: 22px;
@@ -509,13 +647,14 @@
   margin-bottom: 8px;
 }
 
-/* Children Tab & Vaccination Card */
+/* ── Children Tab & Vaccination Card ────────────────────────────────────── */
 .vacc-schedule-table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 10px;
   font-size: 14px;
 }
+
 .vacc-schedule-table th {
   background: #f1f5f9;
   text-align: left;
@@ -524,6 +663,7 @@
   color: #475569;
   border: 1px solid #e2e8f0;
 }
+
 .vacc-schedule-table td {
   padding: 10px 15px;
   border: 1px solid #e2e8f0;
@@ -536,6 +676,7 @@
   font-size: 13px;
   background: #fdfdfd;
 }
+
 .bengali-vacc-table th {
   color: white;
   padding: 10px 8px;
@@ -546,6 +687,7 @@
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
+
 .bengali-vacc-table td {
   border: 1px solid #e2e8f0;
   padding: 10px 10px;
@@ -553,7 +695,7 @@
   vertical-align: top;
 }
 
-/* Household record panel */
+/* ── Household record panel ─────────────────────────────────────────────── */
 .linked-panel {
   width: 680px;
   max-width: 95vw;
@@ -564,7 +706,7 @@
   box-shadow: -8px 0 40px rgba(15, 35, 24, 0.18);
   animation: slideInRight 0.2s ease;
 }
-/* Panel Header & Layout Fixes */
+
 .linked-header {
   padding: 20px 24px;
   border-bottom: 1px solid var(--border);
@@ -574,22 +716,26 @@
   align-items: center;
   flex-shrink: 0;
 }
+
 .linked-title {
   font-size: 18px;
   font-weight: 800;
   color: var(--text);
 }
+
 .linked-sub {
   font-size: 11px;
   color: var(--text3);
   margin-top: 2px;
 }
+
 .linked-tabs {
   display: flex;
   background: var(--bg);
   border-bottom: 2px solid var(--border);
   flex-shrink: 0;
 }
+
 .linked-tabs button {
   flex: 1;
   padding: 14px;
@@ -605,14 +751,17 @@
   justify-content: center;
   gap: 8px;
 }
+
 .linked-tabs button.active.pink {
   border-bottom: 3px solid var(--pink);
   color: var(--pink);
 }
+
 .linked-tabs button.active.amber {
   border-bottom: 3px solid var(--amber);
   color: var(--amber);
 }
+
 .tab-count {
   background: var(--bg2);
   padding: 2px 8px;
@@ -635,16 +784,14 @@
   margin-bottom: 20px;
   gap: 16px;
 }
+
 .section-hint {
   font-size: 12px;
   color: var(--text3);
   font-weight: 500;
 }
 
-/* =========================================================================
-   VACCINATION CARD MODAL (SC-4B FORM)
-   ========================================================================= */
-
+/* ── Vaccination Card ────────────────────────────────────────────────────── */
 .vacc-card-overlay {
   position: fixed;
   inset: 0;
@@ -663,9 +810,7 @@
   width: 100%;
   max-width: 800px;
   max-height: 90vh;
-  box-shadow:
-    0 20px 25px -5px rgba(0, 0, 0, 0.1),
-    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -684,20 +829,6 @@
   padding: 1rem;
   background: var(--surface-alt);
   border-bottom: 1px solid var(--border);
-}
-
-.btn-print {
-  background: var(--primary);
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.btn-print:hover {
-  background: var(--primary-dark);
 }
 
 .vacc-card-header {
@@ -758,12 +889,6 @@
   min-width: 120px;
 }
 
-.vacc-schedule-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.95rem;
-}
-
 .vacc-schedule-table th,
 .vacc-schedule-table td {
   border: 1px solid #cbd5e1;
@@ -810,35 +935,7 @@
   color: #64748b;
 }
 
-@media print {
-  .no-print {
-    display: none !important;
-  }
-  .vacc-card-overlay {
-    position: static;
-    background: transparent;
-    padding: 0;
-  }
-  .vacc-card-container {
-    box-shadow: none;
-    max-width: 100%;
-    margin: 0;
-  }
-  body * {
-    visibility: hidden;
-  }
-  .printable-area,
-  .printable-area * {
-    visibility: visible;
-  }
-  .printable-area {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-  }
-}
-/* Record Cards for Panel Views */
+/* ── Record Cards ─────────────────────────────────────────────────────────── */
 .record-card {
   background: var(--bg);
   border: 1px solid var(--border);
@@ -847,13 +944,16 @@
   margin-bottom: 12px;
   transition: all 0.2s;
 }
+
 .record-card:hover {
   border-color: var(--text3);
   box-shadow: var(--shadow-sm);
 }
+
 .pink-card {
   border-left: 4px solid var(--pink);
 }
+
 .amber-card {
   border-left: 4px solid var(--amber);
 }
@@ -862,22 +962,24 @@
   cursor: pointer;
   transition: all 0.2s ease;
 }
+
 .clickable-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   border-color: var(--pink-light);
 }
+
 .clickable-card:active {
   transform: translateY(0);
 }
 
-/* Shared Record Cards List */
 .record-cards-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 16px;
   margin-top: 16px;
 }
+
 @media (max-width: 768px) {
   .record-cards-list {
     grid-template-columns: 1fr;
@@ -890,11 +992,13 @@
   align-items: flex-start;
   margin-bottom: 8px;
 }
+
 .record-name {
   font-weight: 700;
   color: var(--text);
   font-size: 14.5px;
 }
+
 .record-meta {
   font-size: 11px;
   color: var(--text3);
@@ -902,12 +1006,14 @@
   display: flex;
   gap: 8px;
 }
+
 .record-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   margin-top: 4px;
 }
+
 .tag {
   font-size: 10px;
   font-weight: 700;
@@ -918,47 +1024,398 @@
   border: 1px solid var(--border);
   white-space: nowrap;
 }
+
 .tag.green {
   background: #f0fdf4;
   color: #166534;
   border-color: #bbf7d0;
 }
+
 .tag.teal {
   background: #f0fdfa;
   color: #0f766e;
   border-color: #99f6e4;
 }
+
 .tag.red {
   background: #fef2f2;
   color: #991b1b;
   border-color: #fecaca;
 }
 
+/* ── Vacc dots ───────────────────────────────────────────────────────────── */
+.vacc-dots {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+
+.vacc-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.vacc-dot.done {
+  background: var(--green);
+}
+
+.vacc-dot.miss {
+  background: #e2e8f0;
+  border: 1px solid #cbd5e1;
+}
+
+.vacc-more {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text3);
+  align-self: center;
+}
+
+/* ── Coverage bar ────────────────────────────────────────────────────────── */
+.cov-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cov-track {
+  width: 60px;
+  height: 6px;
+  background: #f1f5f9;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.cov-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+
+.cov-pct {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text2);
+  min-width: 28px;
+}
+
+/* ── Age preview ─────────────────────────────────────────────────────────── */
+.age-preview {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--text2);
+  margin-bottom: 12px;
+}
+
+/* ── Info banners ────────────────────────────────────────────────────────── */
+.info-banner {
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 12.5px;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+
+.info-blue {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.info-teal {
+  background: #f0fdfa;
+  color: #0f766e;
+  border: 1px solid #99f6e4;
+}
+
+.info-purple {
+  background: #faf5ff;
+  color: #6d28d9;
+  border: 1px solid #ddd6fe;
+}
+
+.info-amber {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.info-dim {
+  background: #f8fafc;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+/* ── Vacc expand row ─────────────────────────────────────────────────────── */
+.vacc-expand {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px 0;
+}
+
+.vacc-group {
+  min-width: 140px;
+}
+
+.vacc-group-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+.vacc-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11.5px;
+  padding: 3px 0;
+}
+
+.vacc-given {
+  color: var(--green);
+}
+
+.vacc-miss {
+  color: var(--text3);
+}
+
+/* ── Inline form ─────────────────────────────────────────────────────────── */
+.inline-form {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  margin-top: 12px;
+}
+
+.inline-form-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--sidebar);
+  margin-bottom: 16px;
+}
+
+/* ── Modal footer ─────────────────────────────────────────────────────────── */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+/* ── Empty state ─────────────────────────────────────────────────────────── */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text3);
+  font-size: 13px;
+}
+
+/* ── Vacc color cells ────────────────────────────────────────────────────── */
+.vc-blue {
+  background: #dbeafe !important;
+}
+
+.vc-green {
+  background: #dcfce7 !important;
+}
+
+.vc-yellow {
+  background: #fef9c3 !important;
+}
+
+.vc-pink {
+  background: #fce7f3 !important;
+}
+
+.vc-lightpink {
+  background: #fdf2f8 !important;
+}
+
+.vc-orange {
+  background: #ffedd5 !important;
+}
+
+.vc-teal {
+  background: #ccfbf1 !important;
+}
+
+.vc-gray {
+  background: #f1f5f9 !important;
+}
+
+.vc-lightblue {
+  background: #e0f2fe !important;
+}
+
+.vc-lightyellow {
+  background: #fefce8 !important;
+}
+
+/* ── Bengali card header ─────────────────────────────────────────────────── */
+.bengali-card-header {
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+}
+
+.bc-name {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.bc-meta {
+  font-size: 12px;
+  color: var(--text3);
+  margin-top: 4px;
+}
+
+.vacc-date {
+  font-size: 11px;
+  color: var(--text3);
+  font-family: var(--mono);
+  display: block;
+  margin-top: 2px;
+}
+
+/* ── Name cell ───────────────────────────────────────────────────────────── */
+.name-cell {
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ── Row expand ──────────────────────────────────────────────────────────── */
+.row-expanded {
+  background: var(--green-light);
+}
+
+.expand-row td {
+  background: #f8faf9;
+}
+
+/* ── Btn sm ──────────────────────────────────────────────────────────────── */
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+/* ── Btn red ─────────────────────────────────────────────────────────────── */
+.btn-add.btn-red {
+  background: var(--red);
+}
+
+.btn-add.btn-red:hover {
+  background: #b91c1c;
+}
+
+/* ── govt text ───────────────────────────────────────────────────────────── */
+.govt-text {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.form-id {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 2px;
+}
+
+/* ── card right side ─────────────────────────────────────────────────────── */
+.card-right-side {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* ── text colors ─────────────────────────────────────────────────────────── */
+.text-success {
+  color: var(--green);
+  font-weight: 700;
+}
+
+.text-dim {
+  color: var(--text3);
+}
+
+/* ── Row labels (for preg tab table) ────────────────────────────────────── */
+.row-labels {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text2);
+  padding: 8px 12px;
+  background: #f8fafc;
+  border-right: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.row-inputs {
+  padding: 4px 8px;
+}
+
+/* ── Print ───────────────────────────────────────────────────────────────── */
 @media print {
   .no-print {
     display: none !important;
   }
+
   .vacc-card-overlay {
     position: static;
     background: transparent;
     padding: 0;
   }
+
   .vacc-card-container {
     box-shadow: none;
     max-width: 100%;
     margin: 0;
   }
+
   body * {
     visibility: hidden;
   }
+
   .printable-area,
   .printable-area * {
     visibility: visible;
   }
+
   .printable-area {
     position: absolute;
     left: 0;
     top: 0;
     width: 100%;
   }
+}
+
+/* ── Tab content wrapper ─────────────────────────────────────────────────── */
+.tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }

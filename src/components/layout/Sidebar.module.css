@@ -101,6 +101,14 @@
   flex-shrink: 0;
 }
 
+.navLabel {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .sidebarFooter {
   padding: 14px 16px;
   border-top: 1px solid rgba(255, 255, 255, 0.07);
@@ -117,7 +125,6 @@
 
 .sidebarStats {
   padding: 16px;
-  margin-top: auto;
   border-top: 1px solid var(--glass-border);
 }
 
@@ -141,6 +148,12 @@
   font-size: 18px;
   font-weight: 700;
   color: #fff;
+}
+
+.statMiniSub {
+  font-size: 9px;
+  color: rgba(255,255,255,0.3);
+  margin-top: 2px;
 }
 
 @media (max-width: 1024px) {

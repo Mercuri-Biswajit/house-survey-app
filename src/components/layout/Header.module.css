@@ -3,43 +3,53 @@
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--border);
-  padding: 12px 24px;
+  padding: 10px 20px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex-shrink: 0;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   z-index: 90;
+  position: relative;
 }
 
 .topbarLeft {
-  flex: 1;
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
+  gap: 10px;
+  min-width: 0;
 }
 
 .pageTitle {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
 }
 
 .pageSubtitle {
-  font-size: 11.5px;
+  font-size: 11px;
   color: var(--text3);
-  margin-top: 1px;
   display: block;
+  margin-top: 1px;
+  white-space: nowrap;
 }
 
 .topbarRight {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .searchContainer {
   flex: 1;
-  max-width: 400px;
+  max-width: 380px;
+  min-width: 0;
   position: relative;
   display: flex;
   align-items: center;
@@ -47,17 +57,18 @@
 
 .searchInput {
   width: 100%;
-  padding: 9px 16px 9px 38px;
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  font-size: 14px;
+  padding: 8px 14px 8px 36px;
+  background: #f1f5f1;
+  border: 1px solid #dde8dd;
+  border-radius: 9px;
+  font-size: 13.5px;
   color: #1e293b;
+  font-family: var(--font);
   transition: all 0.2s;
+  outline: none;
 }
 
 .searchInput:focus {
-  outline: none;
   background: #fff;
   border-color: var(--green);
   box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
@@ -65,54 +76,71 @@
 
 .searchIcon {
   position: absolute;
-  left: 14px;
-  font-size: 14px;
+  left: 12px;
+  font-size: 13px;
   color: #94a3b8;
+  pointer-events: none;
+}
+
+.clearSearch {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px;
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.clearSearch:hover {
+  color: var(--text2);
 }
 
 .btnToggle {
   display: none;
   background: transparent;
   border: none;
-  font-size: 22px;
+  font-size: 20px;
   cursor: pointer;
   color: var(--text);
-  padding: 4px;
-  margin-right: 8px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  transition: background 0.15s;
 }
 
-.clearSearch {
-  position: absolute;
-  right: 12px;
-  background: none;
-  border: none;
-  color: #94a3b8;
-  cursor: pointer;
+.btnToggle:hover {
+  background: var(--green-light);
 }
 
-/* ── Import Button ─────────────────────────────────────────── */
+/* Import */
+.importWrap {
+  position: relative;
+}
+
 .btnImport {
   background: var(--teal);
   color: #fff;
   border: none;
-  padding: 10px 18px;
+  padding: 8px 14px;
   border-radius: 8px;
   font-family: var(--font);
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
   box-shadow: 0 2px 4px rgba(8, 145, 178, 0.15);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   white-space: nowrap;
 }
 
 .btnImport:hover:not(:disabled) {
   background: #0e7490;
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(8, 145, 178, 0.25);
 }
 
 .btnImport:disabled {
@@ -121,8 +149,8 @@
 }
 
 .spinner {
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-top-color: #fff;
   border-radius: 50%;
@@ -130,42 +158,38 @@
   animation: spin 0.8s linear infinite;
 }
 
-/* ── Export Button ─────────────────────────────────────────── */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Export */
+.exportWrap {
+  position: relative;
+}
+
 .btnExport {
   background: var(--green);
   color: #fff;
   border: none;
-  padding: 10px 18px;
+  padding: 8px 14px;
   border-radius: 8px;
   font-family: var(--font);
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
   box-shadow: 0 2px 4px rgba(22, 163, 74, 0.15);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   white-space: nowrap;
 }
 
 .btnExport:hover {
   background: #15803d;
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(22, 163, 74, 0.25);
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.exportWrap {
-  position: relative;
 }
 
 .exportMenu {
@@ -174,30 +198,30 @@
   right: 0;
   background: #fff;
   border: 1px solid var(--border);
+  border-top: 3px solid var(--green);
   border-radius: 12px;
   box-shadow: var(--shadow-lg);
-  width: 240px;
-  z-index: 100;
-  padding: 8px;
-  animation: slideUp 0.15s ease;
-  border-top: 3px solid var(--green);
+  width: 230px;
+  z-index: 200;
+  padding: 6px;
+  animation: menuSlide 0.15s ease;
 }
 
 .exportMenu button {
   width: 100%;
-  padding: 10px 14px;
+  padding: 9px 12px;
   text-align: left;
   background: none;
   border: none;
-  border-radius: 8px;
+  border-radius: 7px;
   font-family: var(--font);
-  font-size: 13px;
+  font-size: 12.5px;
   color: var(--text);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.13s;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .exportMenu button:hover {
@@ -206,27 +230,167 @@
 }
 
 .exportSectionTitle {
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 800;
   color: var(--text3);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  padding: 10px 12px 6px;
+  padding: 8px 10px 4px;
 }
 
 .exportDivider {
   height: 1px;
   background: var(--border);
-  margin: 6px 4px;
+  margin: 4px 4px;
 }
 
+/* ── User avatar & dropdown ──────────────────────────────────────────── */
+.userWrap {
+  position: relative;
+}
+
+.userAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--green-light);
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.userAvatar:hover {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15);
+}
+
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.avatarInitials {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--green);
+  font-family: var(--font);
+}
+
+.userMenu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  width: 210px;
+  z-index: 200;
+  overflow: hidden;
+  animation: menuSlide 0.15s ease;
+}
+
+.userMenuHeader {
+  padding: 14px 16px;
+  background: #f8faf8;
+  border-bottom: 1px solid var(--border);
+}
+
+.userMenuName {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.userMenuEmail {
+  font-size: 11.5px;
+  color: var(--text3);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.userMenuProvider {
+  display: inline-block;
+  margin-top: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: var(--green-light);
+  color: var(--green);
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.userMenuDivider {
+  height: 1px;
+  background: var(--border);
+}
+
+.userMenuItem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 16px;
+  background: none;
+  border: none;
+  font-family: var(--font);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.13s;
+}
+
+.userMenuItem:hover {
+  background: var(--green-light);
+}
+
+.userMenuLogout {
+  color: var(--red);
+}
+
+.userMenuLogout:hover {
+  background: var(--red-light);
+}
+
+@keyframes menuSlide {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────── */
 @media (max-width: 1024px) {
   .btnToggle {
-    display: block;
+    display: flex;
   }
+
   .searchContainer {
     max-width: none;
   }
+
   .pageSubtitle {
     display: none;
   }
@@ -234,29 +398,26 @@
 
 @media (max-width: 768px) {
   .btnImport span:last-child {
-    display: none; /* hide "Import Excel" text, keep icon */
+    display: none;
   }
-  .btnImport {
-    padding: 9px 12px;
+
+  .btnExport span:last-child {
+    display: none;
+  }
+
+  .btnImport,
+  .btnExport {
+    padding: 8px 11px;
   }
 }
 
 @media (max-width: 640px) {
   .pageTitle {
-    font-size: 16px;
+    font-size: 15px;
+    max-width: 140px;
   }
+
   .searchContainer {
     display: none;
-  }
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }

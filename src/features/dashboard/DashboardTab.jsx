@@ -1,10 +1,11 @@
 /* eslint-disable no-unused-vars */
 import { useMemo } from "react";
-import { db } from "../../services/db";
+import { db, getAgeGroupFromDOB } from "../../services/db";
 import { StatCard } from "../../components/common";
+import { useNavigate } from "react-router-dom";
 
 function MiniBar({ label, value, max, color }) {
-  const pct = max > 0 ? (value / max) * 100 : 0;
+  const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
   return (
     <div className="mini-bar-row">
       <span className="mini-bar-label">{label}</span>
@@ -19,19 +20,56 @@ function MiniBar({ label, value, max, color }) {
   );
 }
 
+function AlertBanner({ count, navigate }) {
+  if (!count) return null;
+  return (
+    <div
+      className="alert-banner"
+      onClick={() => navigate("/alerts")}
+      style={{
+        background: "#fef2f2",
+        border: "1px solid #fecaca",
+        borderLeft: "4px solid #dc2626",
+        borderRadius: 10,
+        padding: "12px 20px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        cursor: "pointer",
+        transition: "all 0.2s",
+      }}
+    >
+      <div>
+        <span style={{ fontWeight: 800, color: "#dc2626", fontSize: 14 }}>
+          ⚠ {count} overdue vaccination{count > 1 ? "s" : ""} detected
+        </span>
+        <span style={{ fontSize: 12, color: "#64748b", marginLeft: 12 }}>
+          Click to view alerts
+        </span>
+      </div>
+      <span style={{ color: "#dc2626", fontSize: 18 }}>→</span>
+    </div>
+  );
+}
+
 export default function DashboardTab({
   stats,
   households,
   pregnant,
   children,
 }) {
+  const navigate = useNavigate();
+
   const vaccStats = useMemo(() => {
     const total = children.length;
     const bcg = children.filter((c) => c.BCG).length;
     const penta3 = children.filter((c) => c.Penta3).length;
     const mr1 = children.filter((c) => c.MR1).length;
     const mr2 = children.filter((c) => c.MR2).length;
-    return { total, bcg, penta3, mr1, mr2 };
+    const noMcpCard = children.filter(
+      (c) => !c.mcpCard && !c.mcpCardUwn,
+    ).length;
+    return { total, bcg, penta3, mr1, mr2, noMcpCard };
   }, [children]);
 
   const ancStats = useMemo(() => {
@@ -40,7 +78,11 @@ export default function DashboardTab({
     const anc2 = pregnant.filter((p) => p.anc2).length;
     const anc3 = pregnant.filter((p) => p.anc3).length;
     const anc4 = pregnant.filter((p) => p.anc4).length;
-    return { total, anc1, anc2, anc3, anc4 };
+    const noMcpCard = pregnant.filter(
+      (p) => !p.mcpCard && !p.mcpCardUwn,
+    ).length;
+    const tdComplete = pregnant.filter((p) => p.td1 && p.td2).length;
+    return { total, anc1, anc2, anc3, anc4, noMcpCard, tdComplete };
   }, [pregnant]);
 
   const topFamilies = useMemo(
@@ -53,8 +95,18 @@ export default function DashboardTab({
 
   const maxMem = topFamilies[0]?.familyMembers || 1;
 
+  const totalPopulation = useMemo(
+    () => households.reduce((s, h) => s + (h.familyMembers || 0), 0),
+    [households],
+  );
+
   return (
     <div className="dashboard">
+      {/* Alert Banner */}
+      {stats.overdueCount > 0 && (
+        <AlertBanner count={stats.overdueCount} navigate={navigate} />
+      )}
+
       {/* KPI Row */}
       <div className="stats-grid">
         <StatCard
@@ -82,12 +134,48 @@ export default function DashboardTab({
         />
       </div>
 
+      {/* Quick Stats Bar */}
+      <div className="quick-stats-bar">
+        {[
+          { label: "Total Households", value: stats.totalHouses, icon: "⌂" },
+          { label: "Total Population", value: totalPopulation, icon: "👥" },
+          {
+            label: "No MCP Card (Children)",
+            value: vaccStats.noMcpCard,
+            icon: "🪪",
+            warn: vaccStats.noMcpCard > 0,
+          },
+          {
+            label: "No MCP Card (Mothers)",
+            value: ancStats.noMcpCard,
+            icon: "🪪",
+            warn: ancStats.noMcpCard > 0,
+          },
+          { label: "TD Complete", value: ancStats.tdComplete, icon: "🛡" },
+          {
+            label: "Overdue Vaccinations",
+            value: stats.overdueCount,
+            icon: "⚠",
+            danger: true,
+          },
+        ].map((s) => (
+          <div
+            key={s.label}
+            className={`quick-stat ${s.warn ? "quick-stat-warn" : ""} ${s.danger && s.value > 0 ? "quick-stat-danger" : ""}`}
+          >
+            <span className="quick-stat-icon">{s.icon}</span>
+            <span className="quick-stat-value">{s.value}</span>
+            <span className="quick-stat-label">{s.label}</span>
+          </div>
+        ))}
+      </div>
+
       <div className="dashboard-panels">
         {/* Vaccination Coverage */}
         <div className="panel">
           <div className="panel-header">
             <span className="panel-title">Immunization Coverage</span>
-            <span className="panel-tag">Children 0–2y</span>
+            <span className="panel-tag">{vaccStats.total} Children</span>
           </div>
           <div className="panel-body">
             <MiniBar
@@ -115,7 +203,12 @@ export default function DashboardTab({
               color="#d97706"
             />
             <div className="coverage-note">
-              Out of {vaccStats.total} registered children
+              Out of {vaccStats.total} registered children •{" "}
+              {vaccStats.noMcpCard > 0 && (
+                <span style={{ color: "#dc2626" }}>
+                  {vaccStats.noMcpCard} missing MCP cards
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -123,8 +216,8 @@ export default function DashboardTab({
         {/* ANC Coverage */}
         <div className="panel">
           <div className="panel-header">
-            <span className="panel-title">ANC Visit Coverage</span>
-            <span className="panel-tag">Pregnant Women</span>
+            <span className="panel-title">ANC & TD Coverage</span>
+            <span className="panel-tag">{ancStats.total} Pregnant</span>
           </div>
           <div className="panel-body">
             <MiniBar
@@ -150,6 +243,12 @@ export default function DashboardTab({
               value={ancStats.anc4}
               max={ancStats.total}
               color="#fb7185"
+            />
+            <MiniBar
+              label="TD Complete"
+              value={ancStats.tdComplete}
+              max={ancStats.total}
+              color="#0891b2"
             />
             <div className="coverage-note">
               Out of {ancStats.total} registered mothers
@@ -180,7 +279,7 @@ export default function DashboardTab({
           </div>
         </div>
 
-        {/* Quick Summary Table */}
+        {/* Children Age Distribution */}
         <div className="panel">
           <div className="panel-header">
             <span className="panel-title">Children Age Distribution</span>

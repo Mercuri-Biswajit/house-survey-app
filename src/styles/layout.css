@@ -5,9 +5,6 @@
   overflow: hidden;
 }
 
-/* Sidebar styles moved to Sidebar.module.css */
-
-
 .main {
   flex: 1;
   min-width: 0;
@@ -15,25 +12,16 @@
   flex-direction: column;
   overflow: hidden;
 }
-/* Topbar and Global Search styles moved to Header.module.css */
-
-
-/* Sidebar Toggle */
-/* Sidebar Toggle styles moved to Header.module.css */
-/* Mobile Media Queries for Sidebar/Header moved to their respective modules */
-
 
 .content {
   flex: 1;
   min-width: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 18px 16px;
+  padding: 16px 18px;
 }
 
-/* Modal & Panels */
-/* Modal Overlay styles moved to Modal.module.css */
-
+/* Panel overlay (slide-in panels) */
 .panel-overlay {
   position: fixed;
   inset: 0;
@@ -46,11 +34,12 @@
   animation: fadeIn 0.15s ease;
 }
 
+/* Toast notifications */
 .toast {
   position: fixed;
   bottom: 24px;
   right: 24px;
-  z-index: 300;
+  z-index: 9999;
   padding: 12px 20px;
   border-radius: 10px;
   background: var(--sidebar);
@@ -59,51 +48,71 @@
   font-weight: 600;
   box-shadow: var(--shadow-lg);
   animation: slideInRight 0.2s ease;
+  max-width: 380px;
 }
+
 .toast-error {
   background: var(--red);
 }
 
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 20px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text3);
+}
+
+/* Animations */
 @keyframes fadeIn {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
 }
+
 @keyframes slideUp {
   from {
     opacity: 0;
     transform: translateY(16px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
+
 @keyframes slideInRight {
   from {
     opacity: 0;
     transform: translateX(20px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
   }
 }
 
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 20px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--text3);
+/* Mobile helpers */
+@media (max-width: 768px) {
+  .content {
+    padding: 12px;
+  }
 }

@@ -1,0 +1,361 @@
+.settings {
+  display: flex;
+  gap: 0;
+  height: 100%;
+  background: var(--bg);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.sidebar {
+  width: 200px;
+  min-width: 200px;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  padding: 16px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sideItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text2);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+  width: 100%;
+}
+
+.sideItem:hover {
+  background: var(--green-light);
+  color: var(--green);
+}
+
+.sideItem.active {
+  background: var(--green);
+  color: #fff;
+  font-weight: 700;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px 32px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 720px;
+}
+
+.sectionHeader h2 {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.sectionHeader p {
+  font-size: 13px;
+  color: var(--text3);
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.field input {
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-family: var(--font);
+  font-size: 14px;
+  color: var(--text);
+  background: var(--bg);
+  outline: none;
+  transition: all 0.2s;
+}
+
+.field input:focus {
+  border-color: var(--green);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.08);
+}
+
+.preview {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--green);
+  border-radius: 8px;
+  padding: 16px 20px;
+}
+
+.previewLabel {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+
+.previewValue {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.previewSub {
+  font-size: 12px;
+  color: var(--text3);
+  margin-top: 4px;
+}
+
+.btnSave {
+  align-self: flex-start;
+  padding: 11px 28px;
+  border-radius: 8px;
+  border: none;
+  background: var(--green);
+  color: #fff;
+  font-family: var(--font);
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnSave:hover {
+  background: #15803d;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);
+}
+
+/* Data Management */
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.statBox {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  text-align: center;
+  box-shadow: var(--shadow-sm, 0 1px 4px rgba(0,0,0,0.05));
+}
+
+.statNum {
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.statLbl {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 4px;
+}
+
+.actionCards {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.actionCard {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dangerCard {
+  border-color: #fecaca;
+  background: #fff8f8;
+}
+
+.actionTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.actionDesc {
+  font-size: 13px;
+  color: var(--text3);
+  line-height: 1.5;
+}
+
+.btnAction {
+  align-self: flex-start;
+  padding: 9px 20px;
+  border-radius: 8px;
+  border: none;
+  background: var(--sidebar);
+  color: #fff;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+}
+
+.btnAction:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+.btnDanger {
+  background: var(--red);
+}
+
+.btnCancel {
+  padding: 9px 16px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text2);
+  cursor: pointer;
+}
+
+.confirmRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.confirmMsg {
+  font-size: 13px;
+  color: var(--red);
+  font-weight: 600;
+}
+
+/* About */
+.aboutCard {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 32px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.aboutLogo {
+  font-size: 48px;
+}
+
+.aboutCard h3 {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.aboutVersion {
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--green-light);
+  color: var(--green);
+  padding: 3px 12px;
+  border-radius: 20px;
+}
+
+.aboutDesc {
+  font-size: 13.5px;
+  color: var(--text2);
+  line-height: 1.7;
+  max-width: 480px;
+  text-align: center;
+}
+
+.aboutFeatures {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 8px;
+  width: 100%;
+  max-width: 480px;
+  text-align: left;
+}
+
+.featureItem {
+  font-size: 12.5px;
+  color: var(--text2);
+  padding: 6px 10px;
+  background: var(--bg);
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+@media (max-width: 768px) {
+  .settings {
+    flex-direction: column;
+  }
+  .sidebar {
+    width: 100%;
+    min-width: unset;
+    flex-direction: row;
+    overflow-x: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    padding: 8px;
+  }
+  .sideItem {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+  .statsRow {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
