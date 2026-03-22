@@ -298,7 +298,7 @@ export async function importFromJson(file) {
         let pwList = await db.getPregnant();
         let chList = await db.getChildren();
 
-        const households = json.households || (Array.isArray(json) ? [] : []);
+        const households = json.households || (Array.isArray(json) ? json : []);
         const pregnant = json.pregnant || [];
         const children = json.children || [];
 

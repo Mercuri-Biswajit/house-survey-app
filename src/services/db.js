@@ -505,33 +505,40 @@ export const db = {
   },
 
   saveBulkData: async ({ households, pregnant, children, overrideUid }) => {
-    // No auth check if overrideUid is provided, but Firestore rules will still check it
-    const batch = writeBatch(firestore);
+    const CHUNK_SIZE = 400;
 
-    if (households) {
-      households.forEach((h) => {
-        const docId = String(h._internalId || h.id);
-        batch.set(docRefs.household(docId, overrideUid), h, { merge: true });
-      });
+    async function pushChunked(data, colType) {
+      if (!data || data.length === 0) return;
+      console.log(`Pushing ${data.length} to ${colType}...`);
+      
+      for (let i = 0; i < data.length; i += CHUNK_SIZE) {
+        const batch = writeBatch(firestore);
+        const chunk = data.slice(i, i + CHUNK_SIZE);
+        
+        chunk.forEach(item => {
+          let docId;
+          if (colType === 'households') docId = String(item._internalId || item.id);
+          else docId = String(item._id);
+
+          const docRef = docRefs[colType === 'households' ? 'household' : (colType === 'pregnant' ? 'pregnant' : 'child')](docId, overrideUid);
+          batch.set(docRef, item, { merge: true });
+        });
+        
+        await batch.commit();
+        console.log(` - Chunk ${i}-${i+chunk.length} committed`);
+      }
     }
 
-    if (pregnant) {
-      pregnant.forEach((p) => {
-        const docId = String(p._id);
-        batch.set(docRefs.pregnant(docId, overrideUid), p, { merge: true });
-      });
-    }
+    try {
+      if (households) await pushChunked(households, 'households');
+      if (pregnant) await pushChunked(pregnant, 'pregnant');
+      if (children) await pushChunked(children, 'children');
 
-    if (children) {
-      children.forEach((c) => {
-        const docId = String(c._id);
-        batch.set(docRefs.child(docId, overrideUid), c, { merge: true });
-      });
+      if (!overrideUid) await syncAllHouseholds();
+    } catch (err) {
+      console.error("Bulk save error:", err);
+      throw err;
     }
-
-    await batch.commit();
-    // We don't syncAllHouseholds if it's a cross-UID seed, it's safer
-    if (!overrideUid) await syncAllHouseholds();
   },
 
   reset: async () => {
