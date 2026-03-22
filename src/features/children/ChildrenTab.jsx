@@ -116,10 +116,44 @@ export default function ChildrenTab({ data, filterGroup, households, onRefresh }
   const [showCard, setShowCard] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
 
+  const listWithPending = useMemo(() => {
+    const combined = [...data.map(c => ({ ...c, _type: 'actual' }))];
+    
+    // Mapping from filterGroup to household count field
+    const groupToField = {
+      under1Month: 'childUnder1Month',
+      '1monthTo1year': 'child1MonthTo1Year',
+      '1to2years': 'child1To2Years',
+      '2to5years': 'child2To5Years',
+      above5years: 'child6To18Years'
+    };
+
+    if (filterGroup && groupToField[filterGroup]) {
+      const field = groupToField[filterGroup];
+      households.forEach(h => {
+        const target = Number(h[field] || 0);
+        const actual = data.filter(c => String(c.hhNo) === String(h.id) && getAgeGroupFromDOB(c.dob) === filterGroup).length;
+        if (target > actual) {
+          for (let i = actual + 1; i <= target; i++) {
+            combined.push({
+              _id: `pending-c-${h.id}-${filterGroup}-${i}`,
+              hhNo: String(h.id),
+              name: `[Pending] Child ${i} (House #${h.id})`,
+              guardianName: h.headName || "Unknown",
+              dob: "", 
+              _type: 'pending'
+            });
+          }
+        }
+      });
+    }
+    return combined;
+  }, [data, households, filterGroup]);
+
   const filtered = useMemo(() => {
-    let list = data;
+    let list = listWithPending;
     if (filterGroup) {
-      list = list.filter((c) => getAgeGroupFromDOB(c.dob) === filterGroup);
+      list = list.filter((c) => c._type === 'pending' || getAgeGroupFromDOB(c.dob) === filterGroup);
     }
     const q = search.toLowerCase();
     return q
@@ -130,7 +164,7 @@ export default function ChildrenTab({ data, filterGroup, households, onRefresh }
             String(c.hhNo).includes(q),
         )
       : list;
-  }, [data, search, filterGroup]);
+  }, [listWithPending, search, filterGroup]);
 
   function openAdd() {}
   function openEdit(c) {
@@ -232,8 +266,7 @@ export default function ChildrenTab({ data, filterGroup, households, onRefresh }
         className={`info-banner info-${filterGroup ? AGE_GROUP_COLORS[filterGroup] : "amber"}`}
         style={{ marginBottom: 0 }}
       >
-        ⟳ Use the <strong>Household Tab (🔗)</strong> to add records.
-        Age group is auto-detected from Date of Birth.
+        🏠 <strong>Data Picking Active</strong>: Households with counts for this age group but no records are shown as <em>[Pending]</em>.
       </div>
 
       <div className="table-wrap">
@@ -308,27 +341,33 @@ export default function ChildrenTab({ data, filterGroup, households, onRefresh }
                   </td>
                   <td className="center">
                     <div className="action-btns" style={{ justifyContent: "center" }}>
-                      <button
-                        className="btn-icon btn-view"
-                        onClick={() => setShowCard(c)}
-                        title="View Full Card"
-                      >
-                        📇
-                      </button>
-                      <button
-                        className="btn-icon btn-edit"
-                        onClick={() => openEdit(c)}
-                        title="Edit"
-                      >
-                        ✏
-                      </button>
-                      <button
-                        className="btn-icon btn-del"
-                        onClick={() => handleDelete(c)}
-                        title="Delete"
-                      >
-                        ✕
-                      </button>
+                      {c._type === 'actual' ? (
+                        <>
+                          <button
+                            className="btn-icon btn-view"
+                            onClick={() => setShowCard(c)}
+                            title="View Full Card"
+                          >
+                            📇
+                          </button>
+                          <button
+                            className="btn-icon btn-edit"
+                            onClick={() => openEdit(c)}
+                            title="Edit"
+                          >
+                            ✏
+                          </button>
+                          <button
+                            className="btn-icon btn-del"
+                            onClick={() => handleDelete(c)}
+                            title="Delete"
+                          >
+                            ✕
+                          </button>
+                        </>
+                      ) : (
+                        <Badge variant="amber" onClick={() => openEdit(c)} style={{ cursor: 'pointer' }}>➕ Add Details</Badge>
+                      )}
                     </div>
                   </td>
                 </tr>

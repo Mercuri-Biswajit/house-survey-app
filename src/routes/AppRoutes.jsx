@@ -115,6 +115,7 @@ export default function AppRoutes({
         element={
           <PregnantTab
             data={pregnant}
+            households={households}
             onRefresh={refresh}
           />
         }

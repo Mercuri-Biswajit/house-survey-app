@@ -43,25 +43,47 @@ function calcTrimester(lmp) {
   return { label: "Overdue?", color: "#dc2626" };
 }
 
-export default function PregnantTab({ data, onRefresh }) {
+export default function PregnantTab({ data, households = [], onRefresh }) {
   const { showToast } = useToast();
   const [search, setSearch] = useState("");
   const [modal, setModal] = useState(null);
   const [form, setForm] = useState(EMPTY);
   const [confirmDelete, setConfirmDelete] = useState(null);
 
+  const listWithPending = useMemo(() => {
+    const combined = [...data.map(p => ({ ...p, _type: 'actual' }))];
+    
+    // Add pending records from households
+    households.forEach(h => {
+      const target = Number(h.pregnantWomen || 0);
+      const actual = data.filter(p => String(p.hhNo) === String(h.id)).length;
+      if (target > actual) {
+        for (let i = actual + 1; i <= target; i++) {
+          combined.push({
+            _id: `pending-p-${h.id}-${i}`,
+            hhNo: String(h.id),
+            name: `[Pending] Woman ${i} (House #${h.id})`,
+            husbandName: h.headName || "Unknown",
+            _type: 'pending'
+          });
+        }
+      }
+    });
+    return combined;
+  }, [data, households]);
+
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
     return q
-      ? data.filter(
+      ? listWithPending.filter(
           (p) =>
             p.name?.toLowerCase().includes(q) ||
             p.husbandName?.toLowerCase().includes(q) ||
             String(p.hhNo).includes(q) ||
             p.mobile?.includes(q),
         )
-      : data;
-  }, [data, search]);
+      : listWithPending;
+  }, [listWithPending, search]);
 
   function openEdit(p) {
     // Sanitize mobile if it contains formula string
@@ -161,9 +183,8 @@ export default function PregnantTab({ data, onRefresh }) {
         placeholder="Search name, husband, HH no., mobile…"
       />
 
-      <div className="info-banner no-margin">
-        ⟳ Use the <strong>Household Tab (🔗)</strong> to add records.
-        You can only edit existing records here.
+      <div className="info-banner no-margin" style={{ background: '#fdf2f8', borderColor: '#fbcfe8', color: '#be185d' }}>
+        🏠 <strong>Data Picking Active</strong>: Households with pregnant counts but no records are shown as <em>[Pending]</em>.
       </div>
 
       <div className="record-cards-list">
@@ -178,34 +199,41 @@ export default function PregnantTab({ data, onRefresh }) {
           return (
             <div
               key={p._id || i}
-              className="record-card pink-card clickable-card"
+              className={`record-card pink-card clickable-card ${p._type === 'pending' ? 'pending-card' : ''}`}
               onClick={() => openEdit(p)}
+              style={p._type === 'pending' ? { borderStyle: 'dashed', opacity: 0.8 } : {}}
             >
               <div className="record-card-header">
                 <div>
-                  <div className="record-name">{p.name} 📋</div>
+                  <div className="record-name">
+                    {p.name} {p._type === 'actual' ? '📋' : '➕'}
+                  </div>
                   <div className="record-meta">
                     <span>HH #{p.hhNo || "—"}</span>
                     <span>•</span>
-                    <span>Husband: {p.husbandName || "—"}</span>
+                    <span>{p._type === 'actual' ? `Husband: ${p.husbandName || "—"}` : "Click to add details"}</span>
                   </div>
                 </div>
                 <div style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
-                  {tri && (
+                  {p._type === 'actual' && tri && (
                     <Badge 
                       variant={tri.color === "#16a34a" ? "green" : tri.color === "#0891b2" ? "blue" : tri.color === "#d97706" ? "amber" : "red"}
                     >
                       {tri.label}
                     </Badge>
                   )}
-                  <button 
-                    className="btn-icon btn-del" 
-                    onClick={(e) => handleDelete(p, e)}
-                    title="Delete Record"
-                    style={{ padding: "4px", fontSize: "14px" }}
-                  >
-                    ✕
-                  </button>
+                  {p._type === 'actual' ? (
+                    <button 
+                      className="btn-icon btn-del" 
+                      onClick={(e) => handleDelete(p, e)}
+                      title="Delete Record"
+                      style={{ padding: "4px", fontSize: "14px" }}
+                    >
+                      ✕
+                    </button>
+                  ) : (
+                    <Badge variant="pink">Pending Detail</Badge>
+                  )}
                 </div>
               </div>
 
