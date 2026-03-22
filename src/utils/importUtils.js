@@ -285,3 +285,86 @@ export async function importFromExcel(file) {
     reader.readAsArrayBuffer(file);
   });
 }
+
+export async function importFromJson(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const json = JSON.parse(e.target.result);
+        const counts = { households: 0, pregnant: 0, children: 0 };
+        
+        let hhList = await db.getHouseholds();
+        let pwList = await db.getPregnant();
+        let chList = await db.getChildren();
+
+        const households = json.households || (Array.isArray(json) ? [] : []);
+        const pregnant = json.pregnant || [];
+        const children = json.children || [];
+
+        // Simple merging logic (same as Excel)
+        if (Array.isArray(households)) {
+          households.forEach(item => {
+            if (!item.id) return;
+            const existingIdx = hhList.findIndex(h => String(h.id) === String(item.id));
+            if (existingIdx >= 0) {
+              hhList[existingIdx] = { ...hhList[existingIdx], ...item, _internalId: hhList[existingIdx]._internalId || item._internalId };
+            } else {
+              if (!item._internalId) item._internalId = `imp-json-${item.id}-${Date.now()}`;
+              hhList.push(item);
+              counts.households++;
+            }
+          });
+        }
+
+        if (Array.isArray(pregnant)) {
+          pregnant.forEach(item => {
+            if (!item.name || !item.hhNo) return;
+            const existingIdx = pwList.findIndex(p => 
+              String(p.hhNo) === String(item.hhNo) && 
+              String(p.name).toLowerCase() === String(item.name).toLowerCase()
+            );
+            if (existingIdx >= 0) {
+              pwList[existingIdx] = { ...pwList[existingIdx], ...item, _id: pwList[existingIdx]._id };
+            } else {
+              if (!item._id) item._id = `imp-json-${Date.now()}-${Math.random()}`;
+              pwList.push(item);
+              counts.pregnant++;
+            }
+          });
+        }
+
+        if (Array.isArray(children)) {
+          children.forEach(item => {
+            if (!item.name || !item.hhNo) return;
+            const existingIdx = chList.findIndex(c => 
+              String(c.hhNo) === String(item.hhNo) && 
+              String(c.name).toLowerCase() === String(item.name).toLowerCase() &&
+              String(c.dob) === String(item.dob)
+            );
+            if (existingIdx >= 0) {
+              chList[existingIdx] = { ...chList[existingIdx], ...item, _id: chList[existingIdx]._id };
+            } else {
+              if (!item._id) item._id = `imp-json-${Date.now()}-${Math.random()}`;
+              chList.push(item);
+              counts.children++;
+            }
+          });
+        }
+
+        await db.saveBulkData({
+          households: hhList,
+          pregnant: pwList,
+          children: chList
+        });
+
+        resolve(counts);
+      } catch (err) {
+        console.error("JSON Import error:", err);
+        reject(err);
+      }
+    };
+    reader.onerror = reject;
+    reader.readAsText(file);
+  });
+}

@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { exportToExcel, exportToPDF } from "../../utils/exportUtils";
-import { importFromExcel } from "../../utils/importUtils";
+import { importFromExcel, importFromJson } from "../../utils/importUtils";
 import { useToast } from "../../contexts/ToastContext";
 import { useAuth } from "../../contexts/AuthContext";
 import styles from "./Header.module.css";
@@ -28,17 +28,27 @@ export default function Header({
   const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const fileName = file.name.toLowerCase();
+    
     if (fileInputRef.current) fileInputRef.current.value = "";
     setIsImporting(true);
     try {
-      const counts = await importFromExcel(file);
+      let counts;
+      if (fileName.endsWith(".json")) {
+        counts = await importFromJson(file);
+      } else if (fileName.endsWith(".xlsx") || fileName.endsWith(".xls")) {
+        counts = await importFromExcel(file);
+      } else {
+        throw new Error("Unsupported file type. Please use .xlsx or .json");
+      }
+
       showToast(
         `✓ Imported: ${counts.households} households, ${counts.pregnant} pregnant, ${counts.children} children`,
       );
       if (onRefresh) onRefresh();
     } catch (err) {
       console.error("Import error:", err);
-      showToast("❌ Import failed. Please check the file format.", "error");
+      showToast("❌ Import failed: " + (err.message || "Invalid file format"), "error");
     } finally {
       setIsImporting(false);
     }
@@ -106,7 +116,7 @@ export default function Header({
             type="file"
             ref={fileInputRef}
             onChange={handleFileChange}
-            accept=".xlsx"
+            accept=".xlsx,.xls,.json"
             style={{ display: "none" }}
           />
           <button
