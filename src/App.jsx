@@ -31,6 +31,11 @@ function AppShell() {
       <AppRoutes
         stats={stats} households={filteredData.households}
         pregnant={filteredData.pregnant} children={filteredData.children}
+        childrenU1m={filteredData.childrenU1m}
+        children1mTo1y={filteredData.children1mTo1y}
+        children1to2y={filteredData.children1to2y}
+        children2to5={filteredData.children2to5}
+        children6to18={filteredData.children6to18}
         recycleBin={recycleBin} refresh={refresh}
       />
     </MainLayout>

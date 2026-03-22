@@ -120,6 +120,13 @@ export default function LinkedRecordsPanel({
       showToast("Name is required", "error");
       return;
     }
+
+    const isDuplicate = await db.checkDuplicatePregnant(hhNo, editingP.name, editingP._id);
+    if (isDuplicate) {
+      showToast(`A record for ${editingP.name} in House #${hhNo} already exists.`, "error");
+      return;
+    }
+
     await db.savePregnant(editingP);
     await refreshAll();
     setEditingP(null);
@@ -138,7 +145,7 @@ export default function LinkedRecordsPanel({
     if (!confirmDelete) return;
     const { type, item } = confirmDelete;
     if (type === "child") {
-      await db.deleteChild(item._id);
+      await db.deleteChild(item._id, item.dob);
     } else {
       await db.deletePregnant(item._id);
     }
@@ -159,6 +166,13 @@ export default function LinkedRecordsPanel({
       showToast("Child name required", "error");
       return;
     }
+
+    const isDuplicate = await db.checkDuplicateChild(hhNo, editingC.name, editingC.dob, editingC._id);
+    if (isDuplicate) {
+      showToast(`A record for ${editingC.name} in House #${hhNo} with the same DOB already exists.`, "error");
+      return;
+    }
+
     await db.saveChild(editingC);
     await refreshAll();
     setEditingC(null);

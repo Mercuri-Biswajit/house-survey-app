@@ -85,6 +85,11 @@ export default function PregnantTab({ data, households = [], onRefresh }) {
       : listWithPending;
   }, [listWithPending, search]);
 
+  function openAdd() {
+    setForm({ ...EMPTY, _id: Date.now() });
+    setModal("add");
+  }
+
   function openEdit(p) {
     // Sanitize mobile if it contains formula string
     const sanitized = { ...p };
@@ -104,6 +109,13 @@ export default function PregnantTab({ data, households = [], onRefresh }) {
       showToast("House No. is required", "error");
       return;
     }
+
+    const isDuplicate = await db.checkDuplicatePregnant(form.hhNo, form.name, form._id);
+    if (isDuplicate) {
+      showToast(`A record for ${form.name} in House #${form.hhNo} already exists.`, "error");
+      return;
+    }
+
     await db.savePregnant(form);
     await onRefresh();
     setModal(null);
@@ -181,6 +193,8 @@ export default function PregnantTab({ data, households = [], onRefresh }) {
         onSearch={(val) => setSearch(val)}
         resultCount={filtered.length}
         placeholder="Search name, husband, HH no., mobile…"
+        addLabel="+ Add Pregnant"
+        onAdd={openAdd}
       />
 
       <div className="info-banner no-margin" style={{ background: '#fdf2f8', borderColor: '#fbcfe8', color: '#be185d' }}>
@@ -232,7 +246,7 @@ export default function PregnantTab({ data, households = [], onRefresh }) {
                       ✕
                     </button>
                   ) : (
-                    <Badge variant="pink">Pending Detail</Badge>
+                    <Badge variant="pink">➕ Pending Detail</Badge>
                   )}
                 </div>
               </div>

@@ -42,9 +42,12 @@ export default function Header({
         throw new Error("Unsupported file type. Please use .xlsx or .json");
       }
 
-      showToast(
-        `✓ Imported: ${counts.households} households, ${counts.pregnant} pregnant, ${counts.children} children`,
-      );
+      const addedStr = `${counts.households} HH, ${counts.pregnant} PW, ${counts.children} CH`;
+      const updatedStr = counts.householdsUpdated !== undefined 
+          ? ` (Updated: ${counts.householdsUpdated} HH, ${counts.pregnantUpdated} PW, ${counts.childrenUpdated} CH)` 
+          : "";
+      
+      showToast(`✓ Added: ${addedStr}${updatedStr}`);
       if (onRefresh) onRefresh();
     } catch (err) {
       console.error("Import error:", err);

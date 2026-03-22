@@ -20,16 +20,51 @@ function getPath(collection, uidOverride, recordId = "") {
 const cols = {
   households: (uid) => collection(firestore, getPath('households', uid)),
   pregnant: (uid) => collection(firestore, getPath('pregnant', uid)),
-  children: (uid) => collection(firestore, getPath('children', uid)),
+  children: (uid) => collection(firestore, getPath('children', uid)),  // legacy
+  childrenU1m: (uid) => collection(firestore, getPath('childrenU1m', uid)),
+  children1mTo1y: (uid) => collection(firestore, getPath('children1mTo1y', uid)),
+  children1to2y: (uid) => collection(firestore, getPath('children1to2y', uid)),
+  children2to5: (uid) => collection(firestore, getPath('children2to5', uid)),
+  children6to18: (uid) => collection(firestore, getPath('children6to18', uid)),
   recycleBin: (uid) => collection(firestore, getPath('recycleBin', uid)),
 };
 
 const docRefs = {
   household: (id, uid) => doc(firestore, getPath('households', uid, String(id))),
   pregnant: (id, uid) => doc(firestore, getPath('pregnant', uid, String(id))),
-  child: (id, uid) => doc(firestore, getPath('children', uid, String(id))),
+  child: (id, uid) => doc(firestore, getPath('children', uid, String(id))),  // legacy
+  childU1m: (id, uid) => doc(firestore, getPath('childrenU1m', uid, String(id))),
+  child1mTo1y: (id, uid) => doc(firestore, getPath('children1mTo1y', uid, String(id))),
+  child1to2y: (id, uid) => doc(firestore, getPath('children1to2y', uid, String(id))),
+  child2to5: (id, uid) => doc(firestore, getPath('children2to5', uid, String(id))),
+  child6to18: (id, uid) => doc(firestore, getPath('children6to18', uid, String(id))),
   recycleBin: (id, uid) => doc(firestore, getPath('recycleBin', uid, String(id))),
 };
+
+// Map age group string to collection key
+const AGE_GROUP_TO_COL = {
+  under1Month: 'childrenU1m',
+  '1monthTo1year': 'children1mTo1y',
+  '1to2years': 'children1to2y',
+  '2to5years': 'children2to5',
+  '6to18years': 'children6to18',
+};
+const AGE_GROUP_TO_DOC = {
+  under1Month: 'childU1m',
+  '1monthTo1year': 'child1mTo1y',
+  '1to2years': 'child1to2y',
+  '2to5years': 'child2to5',
+  '6to18years': 'child6to18',
+};
+
+function getChildColForDOB(dob) {
+  const ag = getAgeGroupFromDOB(dob);
+  return AGE_GROUP_TO_COL[ag] || 'childrenU1m';
+}
+function getChildDocRefForDOB(dob) {
+  const ag = getAgeGroupFromDOB(dob);
+  return AGE_GROUP_TO_DOC[ag] || 'childU1m';
+}
 
 export const KEYS = {
   households: "hs_households",
@@ -156,7 +191,7 @@ function computeSummary(hh, pregnant, children) {
 export async function syncAllHouseholds() {
   const households = await db.getHouseholds();
   const pregnant = await db.getPregnant();
-  const children = await db.getChildren();
+  const children = await db.getAllChildren();
   
   const batch = writeBatch(firestore);
 
@@ -164,7 +199,6 @@ export async function syncAllHouseholds() {
     const summary = computeSummary(h, pregnant, children);
     if (summary) {
       const updated = { ...h, ...summary };
-      // Overwrite the specific household doc
       const docId = String(h._internalId || h.id);
       batch.set(docRefs.household(docId), updated, { merge: true });
     }
@@ -242,7 +276,9 @@ async function migrateDeliveredPregnant() {
         createdAt: new Date().toISOString(),
       };
       
-      batch.set(docRefs.child(newChild._id), newChild);
+      // Route newborn to the correct age-group collection
+      const newDocKey = getChildDocRefForDOB(newChild.dob);
+      batch.set(docRefs[newDocKey](newChild._id), newChild);
       batch.delete(docRefs.pregnant(String(p._id)));
     });
 
@@ -280,6 +316,22 @@ export const db = {
   migrateDeliveredPregnant,
   migrateLocalToFirestore,
 
+  // ── Duplicate Checkers ──────────────────────────────────────────────────────
+  checkDuplicateHousehold: async (id, excludeInternalId = null) => {
+    let households = await fetchAll(cols.households()); // Skip db.getHouseholds to avoid batch rewrite logic mid-save
+    return households.some(h => String(h.id) === String(id) && h._internalId !== excludeInternalId);
+  },
+
+  checkDuplicatePregnant: async (hhNo, name, excludeId = null) => {
+    let pregnant = await fetchAll(cols.pregnant());
+    return pregnant.some(p => String(p.hhNo) === String(hhNo) && p.name.toLowerCase() === name.toLowerCase() && p._id !== excludeId);
+  },
+
+  checkDuplicateChild: async (hhNo, name, dob, excludeId = null) => {
+    const children = await db.getAllChildren();
+    return children.some(c => String(c.hhNo) === String(hhNo) && c.name.toLowerCase() === name.toLowerCase() && c.dob === dob && c._id !== excludeId);
+  },
+
   // ── Households ──────────────────────────────────────────────────────────────
   getHouseholds: async () => {
     if (!auth.currentUser) return [];
@@ -306,58 +358,17 @@ export const db = {
   saveHousehold: async (item) => {
     let households = await db.getHouseholds();
     let pregnant = await db.getPregnant();
-    let children = await db.getChildren();
+    let children = await db.getAllChildren();
 
     const oldIdx = item._internalId ? households.findIndex((h) => h._internalId === item._internalId) : -1;
-    const newId = Number(item.id);
     const isNew = oldIdx === -1;
-    const idChanged = !isNew && Number(households[oldIdx].id) !== newId;
 
     const batch = writeBatch(firestore);
 
-    if (isNew || idChanged) {
-      households.sort((a, b) => Number(a.id) - Number(b.id));
-
-      if (isNew) {
-        const conflict = households.some((h) => Number(h.id) === newId);
-        if (conflict) {
-          households.forEach((h) => {
-            if (Number(h.id) >= newId) {
-              const oldHId = h.id;
-              h.id = Number(h.id) + 1;
-              pregnant.forEach((p) => { if (Number(p.hhNo) === Number(oldHId)) p.hhNo = h.id; });
-              children.forEach((c) => { if (Number(c.hhNo) === Number(oldHId)) c.hhNo = h.id; });
-            }
-          });
-        }
-        item._internalId = String(Date.now() + Math.random());
-        item.createdAt = item.createdAt || new Date().toISOString();
-        households.push(item);
-      } else {
-        const oldId = Number(households[oldIdx].id);
-        households[oldIdx] = { ...item };
-
-        if (newId < oldId) {
-          households.forEach((h, i) => {
-            if (i !== oldIdx && Number(h.id) >= newId && Number(h.id) < oldId) {
-              const prevId = h.id;
-              h.id = Number(h.id) + 1;
-              pregnant.forEach((p) => { if (Number(p.hhNo) === Number(prevId)) p.hhNo = h.id; });
-              children.forEach((c) => { if (Number(c.hhNo) === Number(prevId)) c.hhNo = h.id; });
-            }
-          });
-        }
-        else if (newId > oldId) {
-          households.forEach((h, i) => {
-            if (i !== oldIdx && Number(h.id) <= newId && Number(h.id) > oldId) {
-              const prevId = h.id;
-              h.id = Number(h.id) - 1;
-              pregnant.forEach((p) => { if (Number(p.hhNo) === Number(prevId)) p.hhNo = h.id; });
-              children.forEach((c) => { if (Number(c.hhNo) === Number(prevId)) c.hhNo = h.id; });
-            }
-          });
-        }
-      }
+    if (isNew) {
+      item._internalId = String(Date.now() + Math.random());
+      item.createdAt = item.createdAt || new Date().toISOString();
+      households.push(item);
     } else {
       households[oldIdx] = { ...item };
     }
@@ -366,13 +377,17 @@ export const db = {
 
     // Calculate summaries and write the batch
     households.forEach((h) => {
-      const summary = computeSummary(h.id, pregnant, children);
+      const summary = computeSummary(h, pregnant, children);
       const toSave = summary ? { ...h, ...summary } : h;
       batch.set(docRefs.household(String(toSave._internalId)), toSave);
     });
 
     pregnant.forEach(p => batch.set(docRefs.pregnant(String(p._id)), p));
-    children.forEach(c => batch.set(docRefs.child(String(c._id)), c));
+    // Re-save children to their correct age-group collections
+    children.forEach(c => {
+      const dRef = getChildDocRefForDOB(c.dob);
+      batch.set(docRefs[dRef](String(c._id)), c);
+    });
 
     await batch.commit();
   },
@@ -380,41 +395,18 @@ export const db = {
   deleteHousehold: async (id) => {
     let households = await db.getHouseholds();
     let pregnant = await db.getPregnant();
-    let children = await db.getChildren();
+    let children = await db.getAllChildren();
 
     const delId = Number(id);
     const batch = writeBatch(firestore);
 
-    // Filter out and delete from cloud
     const deletedH = households.find(h => Number(h.id) === delId);
     if (deletedH) batch.delete(docRefs.household(String(deletedH._internalId)));
     
-    pregnant.filter((p) => Number(p.hhNo) === delId).forEach(p => Math.abs(batch.delete(docRefs.pregnant(String(p._id)))));
-    children.filter((c) => Number(c.hhNo) === delId).forEach(c => Math.abs(batch.delete(docRefs.child(String(c._id)))));
-
-    households = households.filter((h) => Number(h.id) !== delId);
-    pregnant = pregnant.filter((p) => Number(p.hhNo) !== delId);
-    children = children.filter((c) => Number(c.hhNo) !== delId);
-
-    households.forEach((h) => {
-      if (Number(h.id) > delId) {
-        const oldHId = h.id;
-        h.id = Number(h.id) - 1;
-        batch.set(docRefs.household(String(h._internalId)), h);
-        
-        pregnant.forEach((p) => {
-          if (Number(p.hhNo) === Number(oldHId)) {
-            p.hhNo = h.id;
-            batch.set(docRefs.pregnant(String(p._id)), p);
-          }
-        });
-        children.forEach((c) => {
-          if (Number(c.hhNo) === Number(oldHId)) {
-            c.hhNo = h.id;
-            batch.set(docRefs.child(String(c._id)), c);
-          }
-        });
-      }
+    pregnant.filter((p) => Number(p.hhNo) === delId).forEach(p => batch.delete(docRefs.pregnant(String(p._id))));
+    children.filter((c) => Number(c.hhNo) === delId).forEach(c => {
+      const dRef = getChildDocRefForDOB(c.dob);
+      batch.delete(docRefs[dRef](String(c._id)));
     });
 
     await batch.commit();
@@ -457,40 +449,114 @@ export const db = {
     }
   },
 
-  // ── Children ────────────────────────────────────────────────────────────────
-  getChildren: async () => {
+  // ── Children (per-age-group collections) ────────────────────────────────────
+  // Individual age-group getters
+  getChildrenU1m: async () => {
     if (!auth.currentUser) return [];
-    return await fetchAll(cols.children());
+    return await fetchAll(cols.childrenU1m());
   },
+  getChildren1mTo1y: async () => {
+    if (!auth.currentUser) return [];
+    return await fetchAll(cols.children1mTo1y());
+  },
+  getChildren1to2y: async () => {
+    if (!auth.currentUser) return [];
+    return await fetchAll(cols.children1to2y());
+  },
+  getChildren2to5: async () => {
+    if (!auth.currentUser) return [];
+    return await fetchAll(cols.children2to5());
+  },
+  getChildren6to18: async () => {
+    if (!auth.currentUser) return [];
+    return await fetchAll(cols.children6to18());
+  },
+
+  // Combined getter — merges all 5 age-group collections
+  getAllChildren: async () => {
+    if (!auth.currentUser) return [];
+    const [a, b, c, d, e] = await Promise.all([
+      fetchAll(cols.childrenU1m()),
+      fetchAll(cols.children1mTo1y()),
+      fetchAll(cols.children1to2y()),
+      fetchAll(cols.children2to5()),
+      fetchAll(cols.children6to18()),
+    ]);
+    return [...a, ...b, ...c, ...d, ...e];
+  },
+
+  // Legacy alias
+  getChildren: async () => db.getAllChildren(),
   
   getChildrenByHH: async (hhNo) => {
-    const list = await db.getChildren();
+    const list = await db.getAllChildren();
     return list.filter((c) => Number(c.hhNo) === Number(hhNo));
   },
 
+  // Save to the correct age-group collection based on DOB
   saveChild: async (item) => {
     const finalItem = {
       ...item,
       _id: String(item._id || Date.now() + Math.random()),
       createdAt: item.createdAt || new Date().toISOString(),
     };
-    await setDoc(docRefs.child(finalItem._id), finalItem);
+    const docKey = getChildDocRefForDOB(finalItem.dob);
+    await setDoc(docRefs[docKey](finalItem._id), finalItem);
     await syncAllHouseholds();
   },
 
-  deleteChild: async (_id) => {
-    const snap = await getDoc(docRefs.child(String(_id)));
-    if (snap.exists()) {
-      const item = snap.data();
-      const binItem = {
-        ...item,
-        _type: "child",
-        _deletedAt: new Date().toISOString(),
-      };
-      await setDoc(docRefs.recycleBin(String(_id)), binItem);
-      await deleteDoc(docRefs.child(String(_id)));
-      await syncAllHouseholds();
+  // Save to a SPECIFIC age-group collection (used by tabs that know their group)
+  saveChildToGroup: async (item, ageGroup) => {
+    const finalItem = {
+      ...item,
+      _id: String(item._id || Date.now() + Math.random()),
+      createdAt: item.createdAt || new Date().toISOString(),
+    };
+    const docKey = AGE_GROUP_TO_DOC[ageGroup] || getChildDocRefForDOB(finalItem.dob);
+    await setDoc(docRefs[docKey](finalItem._id), finalItem);
+    await syncAllHouseholds();
+  },
+
+  deleteChild: async (_id, dob) => {
+    // Try to find in the DOB-based collection first
+    const docKey = dob ? getChildDocRefForDOB(dob) : null;
+    let found = false;
+    
+    if (docKey) {
+      const snap = await getDoc(docRefs[docKey](String(_id)));
+      if (snap.exists()) {
+        const item = snap.data();
+        await setDoc(docRefs.recycleBin(String(_id)), { ...item, _type: "child", _deletedAt: new Date().toISOString() });
+        await deleteDoc(docRefs[docKey](String(_id)));
+        found = true;
+      }
     }
+    
+    // Fallback: search all 5 collections
+    if (!found) {
+      for (const agDocKey of Object.values(AGE_GROUP_TO_DOC)) {
+        const snap = await getDoc(docRefs[agDocKey](String(_id)));
+        if (snap.exists()) {
+          const item = snap.data();
+          await setDoc(docRefs.recycleBin(String(_id)), { ...item, _type: "child", _deletedAt: new Date().toISOString() });
+          await deleteDoc(docRefs[agDocKey](String(_id)));
+          found = true;
+          break;
+        }
+      }
+    }
+
+    // Also check legacy collection
+    if (!found) {
+      const snap = await getDoc(docRefs.child(String(_id)));
+      if (snap.exists()) {
+        const item = snap.data();
+        await setDoc(docRefs.recycleBin(String(_id)), { ...item, _type: "child", _deletedAt: new Date().toISOString() });
+        await deleteDoc(docRefs.child(String(_id)));
+      }
+    }
+    
+    await syncAllHouseholds();
   },
 
   // ── Recycle Bin ─────────────────────────────────────────────────────────────
@@ -506,7 +572,9 @@ export const db = {
     if (item._type === "pregnant") {
       await setDoc(docRefs.pregnant(_id), item);
     } else if (item._type === "child") {
-      await setDoc(docRefs.child(_id), item);
+      // Route restored child to the correct age-group collection
+      const docKey = getChildDocRefForDOB(item.dob);
+      await setDoc(docRefs[docKey](_id), item);
     }
     await syncAllHouseholds();
   },
@@ -528,11 +596,18 @@ export const db = {
         
         chunk.forEach(item => {
           let docId;
-          if (colType === 'households') docId = String(item._internalId || item.id);
-          else docId = String(item._id);
-
-          const docRef = docRefs[colType === 'households' ? 'household' : (colType === 'pregnant' ? 'pregnant' : 'child')](docId, overrideUid);
-          batch.set(docRef, item, { merge: true });
+          if (colType === 'households') {
+            docId = String(item._internalId || item.id);
+            batch.set(docRefs.household(docId, overrideUid), item, { merge: true });
+          } else if (colType === 'pregnant') {
+            docId = String(item._id);
+            batch.set(docRefs.pregnant(docId, overrideUid), item, { merge: true });
+          } else {
+            // Route children to the correct age-group collection
+            docId = String(item._id);
+            const docKey = getChildDocRefForDOB(item.dob);
+            batch.set(docRefs[docKey](docId, overrideUid), item, { merge: true });
+          }
         });
         
         await batch.commit();
@@ -550,6 +625,59 @@ export const db = {
       console.error("Bulk save error:", err);
       throw err;
     }
+  },
+
+  // ── Migration: Split legacy children → age-group collections ────────────────
+  migrateChildrenToAgeGroups: async () => {
+    if (!auth.currentUser) return 'Not logged in';
+    const legacy = await fetchAll(cols.children());
+    if (legacy.length === 0) return 'No legacy children to migrate.';
+
+    const batch = writeBatch(firestore);
+    let count = 0;
+
+    legacy.forEach(child => {
+      const docKey = getChildDocRefForDOB(child.dob);
+      const _id = String(child._id);
+      batch.set(docRefs[docKey](_id), child);
+      batch.delete(docRefs.child(_id));  // Remove from legacy
+      count++;
+    });
+
+    await batch.commit();
+    await syncAllHouseholds();
+    return `Migrated ${count} children records to age-group collections.`;
+  },
+
+  // ── Sync: Move children between age-group collections if DOB changed group ──
+  syncChildAgeGroups: async () => {
+    if (!auth.currentUser) return;
+    const allColKeys = Object.keys(AGE_GROUP_TO_COL);
+    const batch = writeBatch(firestore);
+    let moves = 0;
+
+    for (const ageGroup of allColKeys) {
+      const colKey = AGE_GROUP_TO_COL[ageGroup];
+      const docKey = AGE_GROUP_TO_DOC[ageGroup];
+      const records = await fetchAll(cols[colKey]());
+
+      for (const child of records) {
+        const currentAG = getAgeGroupFromDOB(child.dob);
+        if (currentAG && currentAG !== ageGroup && AGE_GROUP_TO_COL[currentAG]) {
+          // This child has aged out — move to the new collection
+          const newDocKey = AGE_GROUP_TO_DOC[currentAG];
+          batch.set(docRefs[newDocKey](String(child._id)), child);
+          batch.delete(docRefs[docKey](String(child._id)));
+          moves++;
+        }
+      }
+    }
+
+    if (moves > 0) {
+      await batch.commit();
+      await syncAllHouseholds();
+    }
+    return moves;
   },
 
   seedPlaceholdersFromHouseholds: async () => {

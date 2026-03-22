@@ -205,6 +205,11 @@ export default function AllChildrenTab({ data, households, onRefresh }) {
       return;
     }
 
+    const isDuplicate = await db.checkDuplicateChild(form.hhNo, form.name, form.dob, form._id);
+    if (isDuplicate) {
+      showToast(`A record for ${form.name} in House #${form.hhNo} with the same DOB already exists.`, "error");
+      return;
+    }
 
     await db.saveChild(form);
     await onRefresh();
@@ -221,7 +226,7 @@ export default function AllChildrenTab({ data, households, onRefresh }) {
 
   async function confirmDeleteAction() {
     if (!confirmDelete) return;
-    await db.deleteChild(confirmDelete._id);
+    await db.deleteChild(confirmDelete._id, confirmDelete.dob);
     await onRefresh();
     setConfirmDelete(null);
     showToast("Record deleted. Moved to Recycle Bin ⟳", "error");

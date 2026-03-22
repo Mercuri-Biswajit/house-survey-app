@@ -73,6 +73,11 @@ export default function AppRoutes({
   households,
   pregnant,
   children,
+  childrenU1m,
+  children1mTo1y,
+  children1to2y,
+  children2to5,
+  children6to18,
   recycleBin,
   refresh,
 }) {
@@ -124,7 +129,7 @@ export default function AppRoutes({
         path="/under1Month"
         element={
           <ChildrenTab
-            data={children}
+            data={childrenU1m || []}
             households={households}
             filterGroup="under1Month"
             onRefresh={refresh}
@@ -135,7 +140,7 @@ export default function AppRoutes({
         path="/1monthTo1year"
         element={
           <ChildrenTab
-            data={children}
+            data={children1mTo1y || []}
             households={households}
             filterGroup="1monthTo1year"
             onRefresh={refresh}
@@ -146,7 +151,7 @@ export default function AppRoutes({
         path="/1to2years"
         element={
           <ChildrenTab
-            data={children}
+            data={children1to2y || []}
             households={households}
             filterGroup="1to2years"
             onRefresh={refresh}
@@ -157,7 +162,7 @@ export default function AppRoutes({
         path="/children25"
         element={
           <Children2to5Tab
-            data={children}
+            data={children2to5 || []}
             households={households}
             onRefresh={refresh}
           />
@@ -167,7 +172,7 @@ export default function AppRoutes({
         path="/children618"
         element={
           <Children6to18Tab
-            data={children}
+            data={children6to18 || []}
             households={households}
             onRefresh={refresh}
           />

@@ -13,14 +13,14 @@ const AGE_GROUP_LABELS = {
   "1monthTo1year": "1M – 1 Year",
   "1to2years": "1 – 2 Years",
   "2to5years": "2 – 5 Years",
-  above5years: "Above 5 Yrs",
+  "6to18years": "6 – 18 Years",
 };
 const AGE_GROUP_COLORS = {
   under1Month: "blue",
   "1monthTo1year": "teal",
   "1to2years": "purple",
   "2to5years": "amber",
-  above5years: "dim",
+  "6to18years": "dim",
 };
 
 const VACC_GROUPS = [
@@ -125,14 +125,15 @@ export default function ChildrenTab({ data, filterGroup, households, onRefresh }
       '1monthTo1year': 'child1MonthTo1Year',
       '1to2years': 'child1To2Years',
       '2to5years': 'child2To5Years',
-      above5years: 'child6To18Years'
+      '6to18years': 'child6To18Years'
     };
 
     if (filterGroup && groupToField[filterGroup]) {
       const field = groupToField[filterGroup];
       households.forEach(h => {
         const target = Number(h[field] || 0);
-        const actual = data.filter(c => String(c.hhNo) === String(h.id) && getAgeGroupFromDOB(c.dob) === filterGroup).length;
+        // Data is already pre-filtered for this age group, so count directly
+        const actual = data.filter(c => String(c.hhNo) === String(h.id)).length;
         if (target > actual) {
           for (let i = actual + 1; i <= target; i++) {
             combined.push({
@@ -152,9 +153,7 @@ export default function ChildrenTab({ data, filterGroup, households, onRefresh }
 
   const filtered = useMemo(() => {
     let list = listWithPending;
-    if (filterGroup) {
-      list = list.filter((c) => c._type === 'pending' || getAgeGroupFromDOB(c.dob) === filterGroup);
-    }
+    // Data is already pre-filtered by age group, just filter by search
     const q = search.toLowerCase();
     return q
       ? list.filter(
@@ -164,9 +163,12 @@ export default function ChildrenTab({ data, filterGroup, households, onRefresh }
             String(c.hhNo).includes(q),
         )
       : list;
-  }, [listWithPending, search, filterGroup]);
+  }, [listWithPending, search]);
 
-  function openAdd() {}
+  function openAdd() {
+    setForm({ ...EMPTY, _id: Date.now() });
+    setModal("add");
+  }
   function openEdit(c) {
     setForm({ ...c });
     setModal("edit");
@@ -182,7 +184,13 @@ export default function ChildrenTab({ data, filterGroup, households, onRefresh }
       return;
     }
 
-    await db.saveChild(form);
+    const isDuplicate = await db.checkDuplicateChild(form.hhNo, form.name, form.dob, form._id);
+    if (isDuplicate) {
+      showToast(`A record for ${form.name} in House #${form.hhNo} with the same DOB already exists.`, "error");
+      return;
+    }
+
+    await db.saveChildToGroup(form, filterGroup);
     await onRefresh();
     setModal(null);
     showToast(
@@ -199,7 +207,7 @@ export default function ChildrenTab({ data, filterGroup, households, onRefresh }
 
   async function confirmDeleteAction() {
     if (!confirmDelete) return;
-    await db.deleteChild(confirmDelete._id);
+    await db.deleteChild(confirmDelete._id, confirmDelete.dob);
     await onRefresh();
     setConfirmDelete(null);
     showToast("Record moved to Recycle Bin ⟳", "error");
@@ -260,6 +268,9 @@ export default function ChildrenTab({ data, filterGroup, households, onRefresh }
           {filtered.length}{" "}
           {filterGroup ? AGE_GROUP_LABELS[filterGroup] : "total"} records
         </span>
+        <button className="btn-add btn-amber" onClick={openAdd} style={{ marginLeft: "auto" }}>
+          + Add Child
+        </button>
       </div>
 
       <div
@@ -366,7 +377,7 @@ export default function ChildrenTab({ data, filterGroup, households, onRefresh }
                           </button>
                         </>
                       ) : (
-                        <Badge variant="amber" onClick={() => openEdit(c)} style={{ cursor: 'pointer' }}>➕ Add Details</Badge>
+                        <Badge variant="amber" onClick={() => openEdit(c)} style={{ cursor: 'pointer' }}>➕ Pending Detail</Badge>
                       )}
                     </div>
                   </td>

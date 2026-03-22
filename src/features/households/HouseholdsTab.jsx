@@ -73,6 +73,12 @@ export default function HouseholdsTab({ data, onRefresh }) {
       return;
     }
 
+    const isDuplicate = await db.checkDuplicateHousehold(form.id, form._internalId);
+    if (isDuplicate) {
+      showToast(`House #${form.id} already exists. Please use a different house number.`, "error");
+      return;
+    }
+
     await db.saveHousehold({
       ...form,
       id: Number(form.id),

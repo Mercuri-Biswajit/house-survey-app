@@ -84,23 +84,23 @@ export default function Children2to5Tab({ data, households, onRefresh }) {
   const [expand, setExpand] = useState(null);
   const [showCard, setShowCard] = useState(null);
 
-  // Filter only 2–5 year children
+  // Data is already pre-filtered for 2-5 years from the route
   const filtered = useMemo(() => {
-    const only25 = data.filter(
-      (c) => getAgeGroupFromDOB(c.dob) === "2to5years",
-    );
     const q = search.toLowerCase();
     return q
-      ? only25.filter(
+      ? data.filter(
           (c) =>
             c.name?.toLowerCase().includes(q) ||
             c.guardianName?.toLowerCase().includes(q) ||
             String(c.hhNo).includes(q),
         )
-      : only25;
+      : data;
   }, [data, search]);
 
-  function openAdd() {}
+  function openAdd() {
+    setForm({ ...EMPTY, _id: Date.now() });
+    setModal("add");
+  }
   function openEdit(c) {
     setForm({ ...c });
     setModal("edit");
@@ -126,7 +126,7 @@ export default function Children2to5Tab({ data, households, onRefresh }) {
       )
         return;
     }
-    await db.saveChild(form);
+    await db.saveChildToGroup(form, '2to5years');
     await onRefresh();
     setModal(null);
     showToast(
@@ -190,6 +190,9 @@ export default function Children2to5Tab({ data, households, onRefresh }) {
         <span className="result-count">
           {filtered.length} children aged 2–5 years
         </span>
+        <button className="btn-add btn-amber" onClick={openAdd} style={{ marginLeft: "auto" }}>
+          + Add Child
+        </button>
       </div>
 
       <div className="info-banner info-purple">

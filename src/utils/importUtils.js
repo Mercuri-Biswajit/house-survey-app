@@ -66,39 +66,39 @@ const PW_MAP = {
 
 const CH_MAP = {
   hhNo: ["hh no", "house no", "hh #", "house #", "sl no", "sl."],
-  name: ["name of child", "child name", "name"],
+  name: ["name of child", "child name", "name", "sisu", "shishu", "child name", "name of the child"],
   dob: ["date of birth", "dob"],
   gender: ["gender", "sex"],
   guardianName: ["guardian", "father", "mother"],
   mobile: ["mobile", "contact", "phone"],
   mcpCardUwn: ["mcp card", "uwn id", "mcp/uwn", "rch id"],
   bOPV_birth: ["bopv(b)", "bopv birth", "bopv 0", "bopv-0", "opv 0", "opv-0"],
-  BCG: ["bcg"],
-  HepB: ["hepb", "hep b", "hepatitis b"],
-  bOPV1: ["bopv1", "bopv 1", "bopv-1", "opv 1", "opv-1"],
-  RVV1: ["rvv1", "rvv 1", "rvv-1", "rota 1"],
-  fIPV1: ["f-ipv 1", "fipv1", "fipv 1", "ipv 1", "ipv-1"],
-  PCV1: ["pcv-1", "pcv1", "pcv 1"],
-  Penta1: ["penta-1", "penta1", "penta 1"],
-  bOPV2: ["bopv2", "bopv 2", "bopv-2", "opv 2", "opv-2"],
-  RVV2: ["rvv2", "rvv 2", "rvv-2", "rota 2"],
-  Penta2: ["penta-2", "penta2", "penta 2"],
-  bOPV3: ["bopv3", "bopv 3", "bopv-3", "opv 3", "opv-3"],
-  RVV3: ["rvv3", "rvv 3", "rvv-3", "rota 3"],
-  fIPV2: ["f-ipv 2", "fipv2", "fipv 2", "ipv 2", "ipv-2"],
-  PCV2: ["pcv-2", "pcv2", "pcv 2"],
-  Penta3: ["penta-3", "penta3", "penta 3"],
-  fIPV3: ["f-ipv 3", "fipv3", "fipv 3", "ipv 3", "ipv-3"],
-  MR1: ["mr-1", "mr1", "mr 1", "measles 1"],
-  PCVBooster: ["pcv-b", "pcv booster", "pcvb"],
-  JE1: ["je-1", "je1", "je 1"],
-  VitA1: ["vita-1", "vita 1", "vita1", "vit a-1", "vit a 1"],
-  bOPV_booster: ["bopv-b", "bopv booster", "bopvb", "opv booster"],
+  BCG: ["bcg", "b.c.g", "b c g"],
+  HepB: ["hepb", "hep b", "hepatitis b", "hep.b"],
+  bOPV1: ["bopv1", "bopv 1", "bopv-1", "opv 1", "opv.1", "opv-1", "opv1"],
+  RVV1: ["rvv1", "rvv 1", "rvv-1", "rota 1", "rotavirus 1"],
+  fIPV1: ["f-ipv 1", "fipv1", "fipv 1", "ipv 1", "ipv-1", "ipv.1"],
+  PCV1: ["pcv-1", "pcv1", "pcv 1", "pcv.1"],
+  Penta1: ["penta-1", "penta1", "penta 1", "penta.1"],
+  bOPV2: ["bopv2", "bopv 2", "bopv-2", "opv 2", "opv.2", "opv-2", "opv2"],
+  RVV2: ["rvv2", "rvv 2", "rvv-2", "rota 2", "rotavirus 2"],
+  Penta2: ["penta-2", "penta2", "penta 2", "penta.2"],
+  bOPV3: ["bopv3", "bopv 3", "bopv-3", "opv 3", "opv.3", "opv-3", "opv3"],
+  RVV3: ["rvv3", "rvv 3", "rvv-3", "rota 3", "rotavirus 3"],
+  fIPV2: ["f-ipv 2", "fipv2", "fipv 2", "ipv 2", "ipv-2", "ipv.2"],
+  PCV2: ["pcv-2", "pcv2", "pcv 2", "pcv.2"],
+  Penta3: ["penta-3", "penta3", "penta 3", "penta.3"],
+  fIPV3: ["f-ipv 3", "fipv3", "fipv 3", "ipv 3", "ipv-3", "ipv.3"],
+  MR1: ["mr-1", "mr1", "mr 1", "measles 1", "measles-rubella 1"],
+  PCVBooster: ["pcv-b", "pcv booster", "pcvb", "pcv.b"],
+  JE1: ["je-1", "je1", "je 1", "j.e. 1"],
+  VitA1: ["vita-1", "vita 1", "vita1", "vit a-1", "vitamin a 1"],
+  bOPV_booster: ["bopv-b", "bopv booster", "bopvb", "opv-b", "opv booster"],
   MR2: ["mr-2", "mr2", "mr 2", "measles 2"],
-  DPT_booster: ["dpt-b", "dpt booster", "dptb", "dpt-1"],
-  JE2: ["je-2", "je2", "je 2"],
-  VitA2: ["vita-2", "vita 2", "vita2", "vit a-2", "vit a 2"],
-  fIPV_booster: ["f-ipv-b", "fipv booster", "fipvb", "ipv booster"],
+  DPT_booster: ["dpt-b", "dpt booster", "dptb", "dpt-1", "dpt1"],
+  JE2: ["je-2", "je2", "je 2", "j.e. 2"],
+  VitA2: ["vita-2", "vita 2", "vita2", "vit a-2", "vitamin a 2"],
+  fIPV_booster: ["f-ipv-b", "fipv booster", "fipvb", "ipv booster", "ipv-b"],
 };
 
 // ─── Date parser ───────────────────────────────────────────────────────────────
@@ -176,43 +176,58 @@ function findHeaderRow(rows, map) {
 // ─── Detect sheet type ─────────────────────────────────────────────────────────
 // Bug 3 fix: add "pregant" (typo), "preg", "mother" as valid matches
 function detectSheetType(sheetName, headers) {
-  const sn = sheetName.toLowerCase();
+  const sn = sheetName.toLowerCase().replace(/[^a-z]/g, ""); // strip non-alpha
   if (
     sn.includes("household") ||
     sn.includes("main") ||
-    sn.includes("sc-3") ||
-    sn.includes("sc3")
+    sn.includes("sc3") ||
+    sn.includes("register") ||
+    sn.includes("family")
   )
     return "hh";
-  // Bug 3: typo "Pregant" + other variants
+
   if (
-    sn.includes("pregant") ||
     sn.includes("pregnant") ||
+    sn.includes("pregant") ||
     sn.includes("preg") ||
     sn.includes("pw") ||
-    sn.includes("mother")
+    sn.includes("mother") ||
+    sn.includes("maternity")
   )
     return "pw";
-  if (sn.includes("child") || sn.includes("vacc") || sn.includes("immun"))
+
+  if (
+    sn.includes("child") ||
+    sn.includes("children") ||
+    sn.includes("sisu") ||
+    sn.includes("shishu") ||
+    sn.includes("vacc") ||
+    sn.includes("immun") ||
+    sn.includes("immn") ||
+    sn.includes("agegroup")
+  )
     return "ch";
 
-  // Fallback: check header content
+  // Fallback: check header content (strip punctuation for match)
   const hStr = headers
-    .map((h) => safeStr(h))
-    .join(" ")
-    .toLowerCase();
+    .map((h) => safeStr(h).toLowerCase().replace(/[^a-z0-9]/g, ""))
+    .join(" ");
+
   if (hStr.includes("lmp") || hStr.includes("anc") || hStr.includes("husband"))
     return "pw";
   if (
     hStr.includes("bcg") ||
     hStr.includes("penta") ||
     hStr.includes("bopv") ||
-    hStr.includes("vaccine")
+    hStr.includes("vaccine") ||
+    hStr.includes("rota") ||
+    hStr.includes("measles")
   )
     return "ch";
   if (
-    hStr.includes("head of family") ||
-    hStr.includes("pregnant women") ||
+    hStr.includes("headoffamily") ||
+    hStr.includes("headname") ||
+    hStr.includes("pregnantwomen") ||
     hStr.includes("guardian")
   )
     return "hh";
@@ -233,7 +248,7 @@ export async function importFromExcel(file) {
           cellDates: false, // keep dates as serial numbers for our parser
         });
 
-        const counts = { households: 0, pregnant: 0, children: 0 };
+        const counts = { households: 0, pregnant: 0, children: 0, householdsUpdated: 0, pregnantUpdated: 0, childrenUpdated: 0 };
 
         // Load existing Firestore data first
         let hhList = await db.getHouseholds();
@@ -319,6 +334,7 @@ export async function importFromExcel(file) {
                   _internalId:
                     hhList[existingIdx]._internalId || item._internalId,
                 };
+                counts.householdsUpdated++;
               } else {
                 hhList.push(item);
                 counts.households++;
@@ -378,6 +394,7 @@ export async function importFromExcel(file) {
                   ...item,
                   _id: pwList[existingIdx]._id,
                 };
+                counts.pregnantUpdated++;
               } else {
                 pwList.push(item);
                 counts.pregnant++;
@@ -446,6 +463,7 @@ export async function importFromExcel(file) {
                   ...item,
                   _id: chList[existingIdx]._id,
                 };
+                counts.childrenUpdated++;
               } else {
                 chList.push(item);
                 counts.children++;
@@ -585,7 +603,11 @@ export async function importFromJson(file) {
           );
         }
 
-        resolve(counts);
+        resolve({
+          ...counts,
+          area: json.area,
+          asha: json.asha
+        });
       } catch (err) {
         console.error("JSON Import error:", err);
         reject(err);

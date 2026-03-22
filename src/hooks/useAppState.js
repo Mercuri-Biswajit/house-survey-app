@@ -38,7 +38,13 @@ function countOverdue(children) {
 export function useAppState() {
   const [households, setHouseholds] = useState([]);
   const [pregnant, setPregnant] = useState([]);
-  const [children, setChildren] = useState([]);
+  // Per-age-group children state
+  const [childrenU1m, setChildrenU1m] = useState([]);
+  const [children1mTo1y, setChildren1mTo1y] = useState([]);
+  const [children1to2y, setChildren1to2y] = useState([]);
+  const [children2to5, setChildren2to5] = useState([]);
+  const [children6to18, setChildren6to18] = useState([]);
+
   const [recycleBin, setRecycleBin] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 1024);
@@ -50,16 +56,35 @@ export function useAppState() {
   // Debounce search for performance
   const debouncedSearch = useDebounce(searchQuery, 250);
 
+  // Combine all children for backward-compat props
+  const allChildren = useMemo(
+    () => [...childrenU1m, ...children1mTo1y, ...children1to2y, ...children2to5, ...children6to18],
+    [childrenU1m, children1mTo1y, children1to2y, children2to5, children6to18]
+  );
+
   const refresh = useCallback(async () => {
     await db.migrateDeliveredPregnant();
+    // Sync children who may have aged into a different group
+    await db.syncChildAgeGroups();
+
     const h = await db.getHouseholds();
     const p = await db.getPregnant();
-    const c = await db.getChildren();
+    const cu1m = await db.getChildrenU1m();
+    const c1m1y = await db.getChildren1mTo1y();
+    const c1to2 = await db.getChildren1to2y();
+    const c2to5 = await db.getChildren2to5();
+    const c6to18 = await db.getChildren6to18();
     const r = await db.getRecycleBin();
+
     setHouseholds(h);
     setPregnant(p);
-    setChildren(c);
+    setChildrenU1m(cu1m);
+    setChildren1mTo1y(c1m1y);
+    setChildren1to2y(c1to2);
+    setChildren2to5(c2to5);
+    setChildren6to18(c6to18);
     setRecycleBin(r);
+
     // Refresh area from localStorage in case settings changed
     const savedArea = localStorage.getItem("survey_area");
     if (savedArea) setArea(JSON.parse(savedArea));
@@ -80,7 +105,7 @@ export function useAppState() {
   }, []);
 
   const stats = useMemo(() => {
-    const overdueCount = countOverdue(children);
+    const overdueCount = countOverdue(allChildren);
     return {
       totalHouses: households.length,
       totalMembers: households.reduce((s, h) => s + (h.familyMembers || 0), 0),
@@ -94,7 +119,7 @@ export function useAppState() {
       missedVaccine: households.reduce((s, h) => s + (h.childMissedVaccine || 0), 0),
       overdueCount,
     };
-  }, [households, pregnant, children, recycleBin]);
+  }, [households, allChildren, recycleBin]);
 
   const todayStats = useMemo(() => {
     const today = new Date().toISOString().split("T")[0];
@@ -102,16 +127,20 @@ export function useAppState() {
     return {
       surveys: households.filter((h) => isToday(h.createdAt)).length,
       pregnant: pregnant.filter((p) => isToday(p.createdAt)).length,
-      children: children.filter((c) => isToday(c.createdAt)).length,
+      children: allChildren.filter((c) => isToday(c.createdAt)).length,
     };
-  }, [households, pregnant, children]);
+  }, [households, pregnant, allChildren]);
 
   // Use debouncedSearch for filtering to avoid excessive re-renders
   const filteredData = useMemo(() => {
     const q = debouncedSearch.toLowerCase().trim();
-    if (!q) return { households, pregnant, children };
+    if (!q) return { households, pregnant, children: allChildren, childrenU1m, children1mTo1y, children1to2y, children2to5, children6to18 };
 
     const match = (val) => String(val || "").toLowerCase().includes(q);
+
+    const filterChildren = (list) => list.filter(
+      (c) => match(c.hhNo) || match(c.name) || match(c.guardianName) || match(c.mobile)
+    );
 
     return {
       households: households.filter(
@@ -120,11 +149,14 @@ export function useAppState() {
       pregnant: pregnant.filter(
         (p) => match(p.hhNo) || match(p.name) || match(p.husbandName) || match(p.mobile)
       ),
-      children: children.filter(
-        (c) => match(c.hhNo) || match(c.name) || match(c.guardianName) || match(c.mobile)
-      ),
+      children: filterChildren(allChildren),
+      childrenU1m: filterChildren(childrenU1m),
+      children1mTo1y: filterChildren(children1mTo1y),
+      children1to2y: filterChildren(children1to2y),
+      children2to5: filterChildren(children2to5),
+      children6to18: filterChildren(children6to18),
     };
-  }, [debouncedSearch, households, pregnant, children]);
+  }, [debouncedSearch, households, pregnant, allChildren, childrenU1m, children1mTo1y, children1to2y, children2to5, children6to18]);
 
   const toggleSidebar = useCallback(() => {
     setIsSidebarOpen((prev) => !prev);
@@ -133,7 +165,12 @@ export function useAppState() {
   return {
     households,
     pregnant,
-    children,
+    children: allChildren,
+    childrenU1m,
+    children1mTo1y,
+    children1to2y,
+    children2to5,
+    children6to18,
     recycleBin,
     searchQuery,
     setSearchQuery,
@@ -145,4 +182,4 @@ export function useAppState() {
     filteredData,
     refresh,
   };
-}
+}

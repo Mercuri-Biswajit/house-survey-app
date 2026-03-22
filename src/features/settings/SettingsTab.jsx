@@ -86,26 +86,43 @@ export default function SettingsTab({ onAreaChange }) {
     }
   }
 
+  const [isMigratingAG, setIsMigratingAG] = useState(false);
+  async function handleMigrateAgeGroups() {
+    if (!window.confirm("This will split the legacy 'children' collection into 5 age-group collections. Continue?")) return;
+    setIsMigratingAG(true);
+    showToast("Splitting children by age group...");
+    try {
+      const msg = await db.migrateChildrenToAgeGroups();
+      showToast("✓ " + msg, "success");
+      setTimeout(() => window.location.reload(), 1500);
+    } catch (e) {
+      console.error(e);
+      showToast("❌ Age-group migration failed: " + e.message, "error");
+    } finally {
+      setIsMigratingAG(false);
+    }
+  }
+
   async function handleSeed() {
     if (!window.confirm("This will overwrite existing cloud data with the local JSON files. Continue?")) return;
     setIsSeeding(true);
     showToast("Seeding started. Please wait...");
     try {
+      // We use importFromJson internally or call db.saveBulkData directly
+      // Since importFromJson is now robust, let's use it if we can, 
+      // but for seeding we have raw objects.
       await db.saveBulkData({
         households: householdsData,
         pregnant: pregnantData,
         children: childrenData,
         overrideUid: targetUid
       });
-      showToast("✓ Seeding complete!", "success");
+      
+      showToast(`✓ Seeding complete to ${targetUid.slice(0,6)}...!`, "success");
       setTimeout(() => window.location.reload(), 1500);
     } catch (e) {
       console.error("Seeding error:", e);
-      if (e.code === 'permission-denied') {
-        showToast("❌ Permission Denied. Please ensure your Firestore rules allow writing to this UID path.", "error");
-      } else {
-        showToast("❌ Seeding failed: " + (e.message || "Unknown error"), "error");
-      }
+      showToast("❌ Seeding failed: " + (e.message || "Unknown error"), "error");
     } finally {
       setIsSeeding(false);
     }
@@ -130,31 +147,25 @@ export default function SettingsTab({ onAreaChange }) {
     showToast("✓ Backup downloaded!");
   }
 
-  function importBackup(e) {
+  async function handleRestoreBackup(e) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      try {
-        const data = JSON.parse(ev.target.result);
-        if (data.households) localStorage.setItem("hs_households", JSON.stringify(data.households));
-        if (data.pregnant) localStorage.setItem("hs_pregnant", JSON.stringify(data.pregnant));
-        if (data.children) localStorage.setItem("hs_children", JSON.stringify(data.children));
-        if (data.area) {
-          localStorage.setItem("survey_area", JSON.stringify(data.area));
-          setArea(data.area);
-        }
-        if (data.asha) {
-          localStorage.setItem("survey_asha", JSON.stringify(data.asha));
-          setAsha(data.asha);
-        }
-        showToast("✓ Backup restored!");
-        setTimeout(() => window.location.reload(), 800);
-      } catch {
-        showToast("❌ Invalid backup file", "error");
-      }
-    };
-    reader.readAsText(file);
+    
+    try {
+      showToast("Restoring from backup...");
+      const res = await importFromJson(file);
+      if (res.area) localStorage.setItem("survey_area", JSON.stringify(res.area));
+      if (res.asha) localStorage.setItem("survey_asha", JSON.stringify(res.asha));
+
+      showToast(
+        `✓ Restored: ${res.households} households, ${res.pregnant} pregnant, ${res.children} children`,
+        "success"
+      );
+      setTimeout(() => window.location.reload(), 1500);
+    } catch (err) {
+      console.error("Restore error:", err);
+      showToast("❌ Restore failed: " + (err.message || "Invalid backup file"), "error");
+    }
   }
 
   const sections = [
@@ -280,6 +291,19 @@ export default function SettingsTab({ onAreaChange }) {
               </div>
 
               <div className={styles.actionCard}>
+                <div className={styles.actionTitle}>🔀 Split Children by Age Group</div>
+                <div className={styles.actionDesc}>Move legacy children records into their own age-group collections (U1M, 1M-1Y, 1-2Y, 2-5Y, 6-18Y).</div>
+                <button 
+                  className={styles.btnAction} 
+                  onClick={handleMigrateAgeGroups}
+                  disabled={isMigratingAG}
+                  style={{ background: "#8b5cf6", color: "#fff", borderColor: "#7c3aed" }}
+                >
+                  {isMigratingAG ? "🔀 Splitting..." : "🔀 Split to Age Groups"}
+                </button>
+              </div>
+
+              <div className={styles.actionCard}>
                 <div className={styles.actionTitle}>🚀 [Admin] Seed Data from JSON</div>
                 <div className={styles.actionDesc}>
                   Initialize cloud database using default JSON files. 
@@ -325,7 +349,7 @@ export default function SettingsTab({ onAreaChange }) {
                 <div className={styles.actionDesc}>Restore data from a previously downloaded JSON backup file. This will overwrite current data.</div>
                 <label className={styles.btnAction} style={{ cursor: "pointer" }}>
                   ⬆ Choose Backup File
-                  <input type="file" accept=".json" style={{ display: "none" }} onChange={importBackup} />
+                  <input type="file" accept=".json" style={{ display: "none" }} onChange={handleRestoreBackup} />
                 </label>
               </div>
 
