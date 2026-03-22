@@ -7,10 +7,22 @@ import styles from "./LoginPage.module.css";
 function GoogleIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-      <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 01-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
-      <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/>
-      <path d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
-      <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+      <path
+        d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 01-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"
+        fill="#4285F4"
+      />
+      <path
+        d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z"
+        fill="#34A853"
+      />
+      <path
+        d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"
+        fill="#FBBC05"
+      />
+      <path
+        d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"
+        fill="#EA4335"
+      />
     </svg>
   );
 }
@@ -19,10 +31,38 @@ function GoogleIcon() {
 function HealthCross() {
   return (
     <svg viewBox="0 0 60 60" fill="none" className={styles.healthCross}>
-      <rect x="22" y="5"  width="16" height="50" rx="4" fill="rgba(255,255,255,0.15)"/>
-      <rect x="5"  y="22" width="50" height="16" rx="4" fill="rgba(255,255,255,0.15)"/>
-      <rect x="23" y="6"  width="14" height="48" rx="3" fill="rgba(255,255,255,0.08)"/>
-      <rect x="6"  y="23" width="48" height="14" rx="3" fill="rgba(255,255,255,0.08)"/>
+      <rect
+        x="22"
+        y="5"
+        width="16"
+        height="50"
+        rx="4"
+        fill="rgba(255,255,255,0.15)"
+      />
+      <rect
+        x="5"
+        y="22"
+        width="50"
+        height="16"
+        rx="4"
+        fill="rgba(255,255,255,0.15)"
+      />
+      <rect
+        x="23"
+        y="6"
+        width="14"
+        height="48"
+        rx="3"
+        fill="rgba(255,255,255,0.08)"
+      />
+      <rect
+        x="6"
+        y="23"
+        width="48"
+        height="14"
+        rx="3"
+        fill="rgba(255,255,255,0.08)"
+      />
     </svg>
   );
 }
@@ -41,15 +81,15 @@ export default function LoginPage() {
 
   const navigate = useNavigate();
 
-  const [mode,          setMode]          = useState("login");
-  const [email,         setEmail]         = useState("");
-  const [password,      setPassword]      = useState("");
-  const [name,          setName]          = useState("");
-  const [showPass,      setShowPass]      = useState(false);
-  const [isSubmitting,  setIsSubmitting]  = useState(false);
+  const [mode, setMode] = useState("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [showPass, setShowPass] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [fieldError,    setFieldError]    = useState("");
-  const [mounted,       setMounted]       = useState(false);
+  const [fieldError, setFieldError] = useState("");
+  const [mounted, setMounted] = useState(false);
 
   // Mount animation
   useEffect(() => {
@@ -128,7 +168,6 @@ export default function LoginPage() {
 
   return (
     <div className={`${styles.page} ${mounted ? styles.ready : ""}`}>
-
       {/* ── Left panel ─────────────────────────────────────────── */}
       <div className={styles.leftPanel}>
         <div className={styles.blob1} />
@@ -147,7 +186,11 @@ export default function LoginPage() {
           </div>
 
           <div className={styles.headline}>
-            <h1>Community Health<br /><em>Made Digital</em></h1>
+            <h1>
+              Community Health
+              <br />
+              <em>Made Digital</em>
+            </h1>
             <p>
               Track household surveys, immunization schedules, and maternal
               health records for your village — all in one place.
@@ -156,8 +199,8 @@ export default function LoginPage() {
 
           <div className={styles.statsPills}>
             {[
-              { icon: "⌂",  label: "Households",     value: "293+" },
-              { icon: "♀",  label: "Mothers Tracked", value: "12"  },
+              { icon: "⌂", label: "Households", value: "293+" },
+              { icon: "♀", label: "Mothers Tracked", value: "12" },
               { icon: "💉", label: "Vaccines Logged", value: "38+" },
             ].map((s) => (
               <div key={s.label} className={styles.pill}>
@@ -179,7 +222,6 @@ export default function LoginPage() {
       {/* ── Right panel ────────────────────────────────────────── */}
       <div className={styles.rightPanel}>
         <div className={styles.formCard}>
-
           <div className={styles.formHeader}>
             <h2>{mode === "login" ? "Welcome back" : "Create account"}</h2>
             <p>
@@ -204,7 +246,9 @@ export default function LoginPage() {
             >
               Register
             </button>
-            <div className={`${styles.tabSlider} ${mode === "signup" ? styles.tabSliderRight : ""}`} />
+            <div
+              className={`${styles.tabSlider} ${mode === "signup" ? styles.tabSliderRight : ""}`}
+            />
           </div>
 
           <button
@@ -213,14 +257,19 @@ export default function LoginPage() {
             onClick={handleGoogle}
             disabled={googleLoading || isSubmitting}
           >
-            {googleLoading ? <span className={styles.spinner} /> : <GoogleIcon />}
+            {googleLoading ? (
+              <span className={styles.spinner} />
+            ) : (
+              <GoogleIcon />
+            )}
             <span>Continue with Google</span>
           </button>
 
-          <div className={styles.divider}><span>or continue with email</span></div>
+          <div className={styles.divider}>
+            <span>or continue with email</span>
+          </div>
 
           <form onSubmit={handleSubmit} className={styles.form} noValidate>
-
             {mode === "signup" && (
               <div className={`${styles.field} ${styles.fieldReveal}`}>
                 <label htmlFor="lp-name">Full Name</label>
@@ -268,11 +317,15 @@ export default function LoginPage() {
                   id="lp-password"
                   type={showPass ? "text" : "password"}
                   placeholder={
-                    mode === "signup" ? "At least 6 characters" : "Enter your password"
+                    mode === "signup"
+                      ? "At least 6 characters"
+                      : "Enter your password"
                   }
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  autoComplete={mode === "login" ? "current-password" : "new-password"}
+                  autoComplete={
+                    mode === "login" ? "current-password" : "new-password"
+                  }
                 />
                 <button
                   type="button"
@@ -302,8 +355,10 @@ export default function LoginPage() {
                   <span className={styles.spinner} />
                   {mode === "login" ? "Signing in…" : "Creating account…"}
                 </>
+              ) : mode === "login" ? (
+                "Sign In →"
               ) : (
-                mode === "login" ? "Sign In →" : "Create Account →"
+                "Create Account →"
               )}
             </button>
           </form>
@@ -312,14 +367,22 @@ export default function LoginPage() {
             {mode === "login" ? (
               <span>
                 New to ASHA Survey?{" "}
-                <button type="button" className={styles.switchLink} onClick={() => setMode("signup")}>
+                <button
+                  type="button"
+                  className={styles.switchLink}
+                  onClick={() => setMode("signup")}
+                >
                   Create an account
                 </button>
               </span>
             ) : (
               <span>
                 Already have an account?{" "}
-                <button type="button" className={styles.switchLink} onClick={() => setMode("login")}>
+                <button
+                  type="button"
+                  className={styles.switchLink}
+                  onClick={() => setMode("login")}
+                >
                   Sign in
                 </button>
               </span>
@@ -331,7 +394,6 @@ export default function LoginPage() {
               ? "🔥 Firebase connected — use your real account"
               : "🔧 Demo mode — enter any email & password to continue"}
           </div>
-
         </div>
       </div>
     </div>
