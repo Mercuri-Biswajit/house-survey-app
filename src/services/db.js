@@ -541,6 +541,83 @@ export const db = {
     }
   },
 
+  seedPlaceholdersFromHouseholds: async () => {
+    const households = await db.getHouseholds();
+    const pregnant = await db.getPregnant();
+    const children = await db.getChildren();
+
+    const newPregnant = [];
+    const newChildren = [];
+
+    const AGE_LABELS = {
+      under1Month: "< 1 Month",
+      "1monthTo1year": "1M – 1 Year",
+      "1to2years": "1 – 2 Years",
+      "2to5years": "2 – 5 Years",
+      above5years: "6 – 18 Years",
+    };
+
+    households.forEach((h) => {
+      const hhNo = h.id;
+      
+      // 1. Pregnant sync
+      const currentPCount = pregnant.filter(p => String(p.hhNo) === String(hhNo)).length;
+      const targetPCount = Number(h.pregnantWomen || 0);
+      if (targetPCount > currentPCount) {
+        for (let i = currentPCount + 1; i <= targetPCount; i++) {
+          newPregnant.push({
+            _id: `auto-p-${hhNo}-${i}-${Date.now()}-${Math.random()}`,
+            hhNo: String(hhNo),
+            name: `Pregnant Woman ${i} (House #${hhNo})`,
+            husbandName: h.headName || "Unknown",
+            createdAt: new Date().toISOString(),
+            isPlaceholder: true
+          });
+        }
+      }
+
+      // 2. Children sync
+      const syncGroup = (countField, groupName) => {
+        const target = Number(h[countField] || 0);
+        const current = children.filter(c => String(c.hhNo) === String(hhNo) && getAgeGroupFromDOB(c.dob) === groupName).length;
+        if (target > current) {
+          for (let i = current + 1; i <= target; i++) {
+            let dob;
+            const now = new Date();
+            if (groupName === 'under1Month') dob = new Date(now.setDate(now.getDate() - 15));
+            else if (groupName === '1monthTo1year') dob = new Date(now.setMonth(now.getMonth() - 6));
+            else if (groupName === '1to2years') dob = new Date(now.setFullYear(now.getFullYear() - 1.5));
+            else if (groupName === '2to5years') dob = new Date(now.setFullYear(now.getFullYear() - 3.5));
+            else if (groupName === 'above5years') dob = new Date(now.setFullYear(now.getFullYear() - 10));
+            
+            newChildren.push({
+              _id: `auto-c-${hhNo}-${groupName}-${i}-${Date.now()}-${Math.random()}`,
+              hhNo: String(hhNo),
+              name: `Child ${i} (${AGE_LABELS[groupName]}) (House #${hhNo})`,
+              dob: (dob || new Date()).toISOString().split('T')[0],
+              gender: "M",
+              guardianName: h.headName || "Unknown",
+              createdAt: new Date().toISOString(),
+              isPlaceholder: true
+            });
+          }
+        }
+      };
+
+      syncGroup('childUnder1Month', 'under1Month');
+      syncGroup('child1MonthTo1Year', '1monthTo1year');
+      syncGroup('child1To2Years', '1to2years');
+      syncGroup('child2To5Years', '2to5years');
+      syncGroup('child6To18Years', 'above5years');
+    });
+
+    if (newPregnant.length > 0 || newChildren.length > 0) {
+      await db.saveBulkData({ pregnant: newPregnant, children: newChildren });
+      return { pregnant: newPregnant.length, children: newChildren.length };
+    }
+    return null;
+  },
+
   reset: async () => {
     // Only resetting local variables to avoid dangerous global resets
   },

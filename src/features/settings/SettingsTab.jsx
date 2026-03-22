@@ -38,6 +38,7 @@ export default function SettingsTab({ onAreaChange }) {
 
   const [isMigrating, setIsMigrating] = useState(false);
   const [isSeeding, setIsSeeding] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [targetUid, setTargetUid] = useState("B8LhTP1JauTlFYlIKCfIAKuZv6r2");
   const currentUid = db.auth?.currentUser?.uid;
 
@@ -108,6 +109,26 @@ export default function SettingsTab({ onAreaChange }) {
       }
     } finally {
       setIsSeeding(false);
+    }
+  }
+
+  async function handleSync() {
+    if (!window.confirm("This will create placeholder records in the Pregnant and Children tabs based on the counts in your Household Registry. Continue?")) return;
+    setIsSyncing(true);
+    showToast("Syncing records... this may take a moment.");
+    try {
+      const res = await db.seedPlaceholdersFromHouseholds();
+      if (res) {
+        showToast(`✓ Created ${res.pregnant} pregnant and ${res.children} child placeholders!`, "success");
+        setTimeout(() => window.location.reload(), 1500);
+      } else {
+        showToast("Records are already in sync!", "success");
+      }
+    } catch (e) {
+      console.error("Sync error:", e);
+      showToast("❌ Sync failed: " + e.message, "error");
+    } finally {
+      setIsSyncing(false);
     }
   }
 
@@ -311,6 +332,22 @@ export default function SettingsTab({ onAreaChange }) {
                   style={{ background: "#8b5cf6", color: "#fff", borderColor: "#7c3aed" }}
                 >
                   {isSeeding ? "🚀 Seeding..." : "🚀 Seed Cloud with JSON Data"}
+                </button>
+              </div>
+
+              <div className={styles.actionCard}>
+                <div className={styles.actionTitle}>🔄 Sync Records from Household Counts</div>
+                <div className={styles.actionDesc}>
+                  Automatically create placeholder records in the Pregnant and Children tabs based on the counts in your Household Registry. 
+                  Useful after importing a new household list.
+                </div>
+                <button 
+                   className={styles.btnAction} 
+                   onClick={handleSync}
+                   disabled={isSyncing}
+                   style={{ background: "#10b981", color: "#fff", borderColor: "#059669" }}
+                 >
+                   {isSyncing ? "🔄 Syncing..." : "🔄 Sync Records Now"}
                 </button>
               </div>
 
