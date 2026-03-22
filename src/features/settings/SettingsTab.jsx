@@ -38,6 +38,8 @@ export default function SettingsTab({ onAreaChange }) {
 
   const [isMigrating, setIsMigrating] = useState(false);
   const [isSeeding, setIsSeeding] = useState(false);
+  const [targetUid, setTargetUid] = useState("B8LhTP1JauTlFYlIKCfIAKuZv6r2");
+  const currentUid = db.auth?.currentUser?.uid;
 
   useEffect(() => {
     async function loadStats() {
@@ -92,13 +94,18 @@ export default function SettingsTab({ onAreaChange }) {
       await db.saveBulkData({
         households: householdsData,
         pregnant: pregnantData,
-        children: childrenData
+        children: childrenData,
+        overrideUid: targetUid
       });
       showToast("✓ Seeding complete!", "success");
       setTimeout(() => window.location.reload(), 1500);
     } catch (e) {
-      console.error(e);
-      showToast("❌ Seeding failed: " + e.message, "error");
+      console.error("Seeding error:", e);
+      if (e.code === 'permission-denied') {
+        showToast("❌ Permission Denied. Please ensure your Firestore rules allow writing to this UID path.", "error");
+      } else {
+        showToast("❌ Seeding failed: " + (e.message || "Unknown error"), "error");
+      }
     } finally {
       setIsSeeding(false);
     }
@@ -274,7 +281,29 @@ export default function SettingsTab({ onAreaChange }) {
 
               <div className={styles.actionCard}>
                 <div className={styles.actionTitle}>🚀 [Admin] Seed Data from JSON</div>
-                <div className={styles.actionDesc}>Initialize the cloud database using the app's default JSON data files.</div>
+                <div className={styles.actionDesc}>
+                  Initialize cloud database using default JSON files. 
+                  {currentUid && (
+                    <div style={{ fontSize: "0.8rem", color: "#666", marginTop: "5px" }}>
+                      Current User: <code>{currentUid}</code>
+                    </div>
+                  )}
+                </div>
+                
+                <div className={styles.field} style={{ marginBottom: "10px" }}>
+                  <label style={{ fontSize: "0.8rem", fontWeight: "bold" }}>Target UID Path</label>
+                  <input 
+                    type="text" 
+                    value={targetUid} 
+                    onChange={e => setTargetUid(e.target.value)}
+                    placeholder="Enter UID..."
+                    style={{ fontSize: "0.8rem", padding: "5px" }}
+                  />
+                  <small style={{ color: "#666", fontSize: "0.7rem" }}>
+                    The seed will push to <code>users/{"<Target UID>"}/...</code>
+                  </small>
+                </div>
+
                 <button 
                   className={styles.btnAction} 
                   onClick={handleSeed}

@@ -6,23 +6,29 @@ import { auth, db as firestore } from "../firebase";
 import { collection, doc, setDoc, getDocs, getDoc, deleteDoc, writeBatch } from "firebase/firestore";
 
 function getUid() {
-  if (!auth.currentUser) throw new Error("User must be logged in to access cloud database");
+  if (!auth.currentUser) return null;
   return auth.currentUser.uid;
+}
+
+function getPath(collection, uidOverride, recordId = "") {
+  const uid = uidOverride || getUid();
+  if (!uid) throw new Error("User must be logged in to access cloud database");
+  return `users/${uid}/${collection}${recordId ? "/" + recordId : ""}`;
 }
 
 // Helper to get collection refs
 const cols = {
-  households: () => collection(firestore, `users/${getUid()}/households`),
-  pregnant: () => collection(firestore, `users/${getUid()}/pregnant`),
-  children: () => collection(firestore, `users/${getUid()}/children`),
-  recycleBin: () => collection(firestore, `users/${getUid()}/recycleBin`),
+  households: (uid) => collection(firestore, getPath('households', uid)),
+  pregnant: (uid) => collection(firestore, getPath('pregnant', uid)),
+  children: (uid) => collection(firestore, getPath('children', uid)),
+  recycleBin: (uid) => collection(firestore, getPath('recycleBin', uid)),
 };
 
 const docRefs = {
-  household: (id) => doc(firestore, `users/${getUid()}/households`, String(id)),
-  pregnant: (id) => doc(firestore, `users/${getUid()}/pregnant`, String(id)),
-  child: (id) => doc(firestore, `users/${getUid()}/children`, String(id)),
-  recycleBin: (id) => doc(firestore, `users/${getUid()}/recycleBin`, String(id)),
+  household: (id, uid) => doc(firestore, getPath('households', uid, String(id))),
+  pregnant: (id, uid) => doc(firestore, getPath('pregnant', uid, String(id))),
+  child: (id, uid) => doc(firestore, getPath('children', uid, String(id))),
+  recycleBin: (id, uid) => doc(firestore, getPath('recycleBin', uid, String(id))),
 };
 
 export const KEYS = {
@@ -498,33 +504,34 @@ export const db = {
     await deleteDoc(docRefs.recycleBin(String(_id)));
   },
 
-  saveBulkData: async ({ households, pregnant, children }) => {
-    if (!auth.currentUser) return;
+  saveBulkData: async ({ households, pregnant, children, overrideUid }) => {
+    // No auth check if overrideUid is provided, but Firestore rules will still check it
     const batch = writeBatch(firestore);
 
     if (households) {
       households.forEach((h) => {
         const docId = String(h._internalId || h.id);
-        batch.set(docRefs.household(docId), h, { merge: true });
+        batch.set(docRefs.household(docId, overrideUid), h, { merge: true });
       });
     }
 
     if (pregnant) {
       pregnant.forEach((p) => {
         const docId = String(p._id);
-        batch.set(docRefs.pregnant(docId), p, { merge: true });
+        batch.set(docRefs.pregnant(docId, overrideUid), p, { merge: true });
       });
     }
 
     if (children) {
       children.forEach((c) => {
         const docId = String(c._id);
-        batch.set(docRefs.child(docId), c, { merge: true });
+        batch.set(docRefs.child(docId, overrideUid), c, { merge: true });
       });
     }
 
     await batch.commit();
-    await syncAllHouseholds();
+    // We don't syncAllHouseholds if it's a cross-UID seed, it's safer
+    if (!overrideUid) await syncAllHouseholds();
   },
 
   reset: async () => {
