@@ -1,4 +1,4 @@
-import logo from "../../assets/hero.png";
+import logo from "../../assets/hero.webp";
 import { NAV_ITEMS } from "../../routes/AppRoutes";
 import { Badge } from "../common";
 import styles from "./Sidebar.module.css";
@@ -27,7 +27,9 @@ export default function Sidebar({
         onClick={toggleSidebar}
       />
 
-      <aside className={`${styles.sidebar} ${!isOpen ? styles.mobileClosed : ""}`}>
+      <aside
+        className={`${styles.sidebar} ${!isOpen ? styles.mobileClosed : ""}`}
+      >
         <div className={styles.sidebarBrand}>
           <div className={styles.brandIcon}>
             <img
@@ -38,7 +40,9 @@ export default function Sidebar({
           </div>
           <div className={styles.brandText}>
             <span className={styles.brandTitle}>ASHA Survey</span>
-            <span className={styles.brandSub}>E-Register • {area?.village}</span>
+            <span className={styles.brandSub}>
+              E-Register • {area?.village}
+            </span>
           </div>
         </div>
 
@@ -60,7 +64,11 @@ export default function Sidebar({
                 {showBadge && (
                   <Badge
                     variant={n.badgeColor || "dim"}
-                    style={{ marginLeft: "auto", fontSize: "10px", flexShrink: 0 }}
+                    style={{
+                      marginLeft: "auto",
+                      fontSize: "10px",
+                      flexShrink: 0,
+                    }}
                   >
                     {badgeVal}
                   </Badge>
@@ -74,9 +82,12 @@ export default function Sidebar({
         <div className={styles.sidebarStats}>
           <div className={styles.statMiniCard}>
             <div className={styles.statMiniLabel}>Today's Activity</div>
-            <div className={styles.statMiniValue}>{todayStats?.surveys || 0}</div>
+            <div className={styles.statMiniValue}>
+              {todayStats?.surveys || 0}
+            </div>
             <div className={styles.statMiniSub}>
-              +{todayStats?.pregnant || 0} Preg • +{todayStats?.children || 0} Child
+              +{todayStats?.pregnant || 0} Preg • +{todayStats?.children || 0}{" "}
+              Child
             </div>
           </div>
         </div>
@@ -90,7 +101,8 @@ export default function Sidebar({
             })()}
           </div>
           <div className={styles.metaLine}>
-            ANM: {(() => {
+            ANM:{" "}
+            {(() => {
               const asha = localStorage.getItem("survey_asha");
               const parsed = asha ? JSON.parse(asha) : null;
               return parsed?.anmName || "Beauty Roy";

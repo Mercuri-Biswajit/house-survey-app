@@ -32,7 +32,9 @@ export default function Header({
     setIsImporting(true);
     try {
       const counts = await importFromExcel(file);
-      showToast(`✓ Imported: ${counts.households} households, ${counts.pregnant} pregnant, ${counts.children} children`);
+      showToast(
+        `✓ Imported: ${counts.households} households, ${counts.pregnant} pregnant, ${counts.children} children`,
+      );
       if (onRefresh) onRefresh();
     } catch (err) {
       console.error("Import error:", err);
@@ -59,10 +61,13 @@ export default function Header({
 
   return (
     <header className={styles.topbar}>
-
       {/* ── Left: toggle + page title ── */}
       <div className={styles.topbarLeft}>
-        <button className={styles.btnToggle} onClick={toggleSidebar} title="Toggle Sidebar">
+        <button
+          className={styles.btnToggle}
+          onClick={toggleSidebar}
+          title="Toggle Sidebar"
+        >
           ☰
         </button>
         <div className={styles.titleWrap}>
@@ -84,13 +89,17 @@ export default function Header({
           onChange={(e) => setSearchQuery(e.target.value)}
         />
         {searchQuery && (
-          <button className={styles.clearSearch} onClick={() => setSearchQuery("")}>✕</button>
+          <button
+            className={styles.clearSearch}
+            onClick={() => setSearchQuery("")}
+          >
+            ✕
+          </button>
         )}
       </div>
 
       {/* ── Right: import / export / user ── */}
       <div className={styles.topbarRight}>
-
         {/* Import */}
         <div className={styles.importWrap}>
           <input
@@ -100,7 +109,11 @@ export default function Header({
             accept=".xlsx"
             style={{ display: "none" }}
           />
-          <button className={styles.btnImport} onClick={handleImportClick} disabled={isImporting}>
+          <button
+            className={styles.btnImport}
+            onClick={handleImportClick}
+            disabled={isImporting}
+          >
             {isImporting ? <span className={styles.spinner} /> : <span>⬆</span>}
             <span>Import</span>
           </button>
@@ -108,22 +121,72 @@ export default function Header({
 
         {/* Export */}
         <div className={styles.exportWrap}>
-          <button className={styles.btnExport} onClick={() => setExportMenu((v) => !v)}>
+          <button
+            className={styles.btnExport}
+            onClick={() => setExportMenu((v) => !v)}
+          >
             <span>⬇</span>
             <span>Export</span>
           </button>
           {exportMenu && (
-            <div className={styles.exportMenu} onMouseLeave={() => setExportMenu(false)}>
+            <div
+              className={styles.exportMenu}
+              onMouseLeave={() => setExportMenu(false)}
+            >
               <div className={styles.exportSectionTitle}>📊 Excel Reports</div>
-              <button onClick={() => { exportToExcel(households, pregnant, children, area); showToast("Excel exported!"); setExportMenu(false); }}>
+              <button
+                onClick={() => {
+                  exportToExcel(households, pregnant, children, area);
+                  showToast("Excel exported!");
+                  setExportMenu(false);
+                }}
+              >
                 💾 Full Workbook (.xlsx)
               </button>
               <div className={styles.exportDivider} />
               <div className={styles.exportSectionTitle}>📄 PDF Documents</div>
-              <button onClick={() => { exportToPDF(households, pregnant, children, "households", area); showToast("PDF ready!"); setExportMenu(false); }}>📋 Households Registry</button>
-              <button onClick={() => { exportToPDF(households, pregnant, children, "pregnant", area); showToast("PDF ready!"); setExportMenu(false); }}>🤰 Pregnant Women List</button>
-              <button onClick={() => { exportToPDF(households, pregnant, children, "children", area); showToast("PDF ready!"); setExportMenu(false); }}>👶 Children Registry</button>
-              <button onClick={() => { exportToPDF(households, pregnant, children, "all", area); showToast("PDF ready!"); setExportMenu(false); }}>📑 Master Monthly Report</button>
+              <button
+                onClick={() => {
+                  exportToPDF(
+                    households,
+                    pregnant,
+                    children,
+                    "households",
+                    area,
+                  );
+                  showToast("PDF ready!");
+                  setExportMenu(false);
+                }}
+              >
+                📋 Households Registry
+              </button>
+              <button
+                onClick={() => {
+                  exportToPDF(households, pregnant, children, "pregnant", area);
+                  showToast("PDF ready!");
+                  setExportMenu(false);
+                }}
+              >
+                🤰 Pregnant Women List
+              </button>
+              <button
+                onClick={() => {
+                  exportToPDF(households, pregnant, children, "children", area);
+                  showToast("PDF ready!");
+                  setExportMenu(false);
+                }}
+              >
+                👶 Children Registry
+              </button>
+              <button
+                onClick={() => {
+                  exportToPDF(households, pregnant, children, "all", area);
+                  showToast("PDF ready!");
+                  setExportMenu(false);
+                }}
+              >
+                📑 Master Monthly Report
+              </button>
             </div>
           )}
         </div>
@@ -136,15 +199,28 @@ export default function Header({
               onClick={() => setUserMenu((v) => !v)}
               title={user.displayName || user.email}
             >
-              {user.photoURL
-                ? <img src={user.photoURL} alt="avatar" className={styles.avatarImg} referrerPolicy="no-referrer" />
-                : <span className={styles.avatarInitials}>{getInitials(user.displayName, user.email)}</span>
-              }
+              {user.photoURL ? (
+                <img
+                  src={user.photoURL}
+                  alt="avatar"
+                  className={styles.avatarImg}
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <span className={styles.avatarInitials}>
+                  {getInitials(user.displayName, user.email)}
+                </span>
+              )}
             </button>
             {userMenu && (
-              <div className={styles.userMenu} onMouseLeave={() => setUserMenu(false)}>
+              <div
+                className={styles.userMenu}
+                onMouseLeave={() => setUserMenu(false)}
+              >
                 <div className={styles.userMenuHeader}>
-                  <div className={styles.userMenuName}>{user.displayName || "User"}</div>
+                  <div className={styles.userMenuName}>
+                    {user.displayName || "User"}
+                  </div>
                   <div className={styles.userMenuEmail}>{user.email}</div>
                   {user.provider && (
                     <span className={styles.userMenuProvider}>
@@ -153,10 +229,19 @@ export default function Header({
                   )}
                 </div>
                 <div className={styles.userMenuDivider} />
-                <button className={styles.userMenuItem} onClick={() => { setUserMenu(false); window.location.hash = "#/settings"; }}>
+                <button
+                  className={styles.userMenuItem}
+                  onClick={() => {
+                    setUserMenu(false);
+                    window.location.hash = "#/settings";
+                  }}
+                >
                   ⚙ Settings
                 </button>
-                <button className={`${styles.userMenuItem} ${styles.userMenuLogout}`} onClick={handleLogout}>
+                <button
+                  className={`${styles.userMenuItem} ${styles.userMenuLogout}`}
+                  onClick={handleLogout}
+                >
                   ↪ Sign Out
                 </button>
               </div>
