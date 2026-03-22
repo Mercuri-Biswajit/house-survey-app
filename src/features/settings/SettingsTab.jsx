@@ -2,6 +2,9 @@
 import { useState, useEffect } from "react";
 import { db } from "../../services/db";
 import { useToast } from "../../contexts/ToastContext";
+import householdsData from "../../data/households.json";
+import pregnantData from "../../data/pregnant.json";
+import childrenData from "../../data/children.json";
 import styles from "./SettingsTab.module.css";
 
 const DEFAULT_AREA = {
@@ -34,6 +37,7 @@ export default function SettingsTab({ onAreaChange }) {
   const [dbStats, setDbStats] = useState({ households: 0, pregnant: 0, children: 0, recycleBin: 0 });
 
   const [isMigrating, setIsMigrating] = useState(false);
+  const [isSeeding, setIsSeeding] = useState(false);
 
   useEffect(() => {
     async function loadStats() {
@@ -77,6 +81,26 @@ export default function SettingsTab({ onAreaChange }) {
       showToast("❌ Migration failed: " + e.message, "error");
     } finally {
       setIsMigrating(false);
+    }
+  }
+
+  async function handleSeed() {
+    if (!window.confirm("This will overwrite existing cloud data with the local JSON files. Continue?")) return;
+    setIsSeeding(true);
+    showToast("Seeding started. Please wait...");
+    try {
+      await db.saveBulkData({
+        households: householdsData,
+        pregnant: pregnantData,
+        children: childrenData
+      });
+      showToast("✓ Seeding complete!", "success");
+      setTimeout(() => window.location.reload(), 1500);
+    } catch (e) {
+      console.error(e);
+      showToast("❌ Seeding failed: " + e.message, "error");
+    } finally {
+      setIsSeeding(false);
     }
   }
 
@@ -245,6 +269,19 @@ export default function SettingsTab({ onAreaChange }) {
                   style={{ background: "#0ea5e9", color: "#fff", borderColor: "#0284c7" }}
                 >
                   {isMigrating ? "☁️ Migrating..." : "☁️ Migrate to Firestore"}
+                </button>
+              </div>
+
+              <div className={styles.actionCard}>
+                <div className={styles.actionTitle}>🚀 [Admin] Seed Data from JSON</div>
+                <div className={styles.actionDesc}>Initialize the cloud database using the app's default JSON data files.</div>
+                <button 
+                  className={styles.btnAction} 
+                  onClick={handleSeed}
+                  disabled={isSeeding}
+                  style={{ background: "#8b5cf6", color: "#fff", borderColor: "#7c3aed" }}
+                >
+                  {isSeeding ? "🚀 Seeding..." : "🚀 Seed Cloud with JSON Data"}
                 </button>
               </div>
 
