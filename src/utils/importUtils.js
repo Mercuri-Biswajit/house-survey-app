@@ -1,5 +1,5 @@
 import * as XLSX from "xlsx";
-import { KEYS, syncAllHouseholds } from "../services/db";
+import { db } from "../services/db";
 
 // Helper to normalize headers (fuzzy matching)
 function getMapping(headers, map) {
@@ -112,17 +112,17 @@ function parseExcelDate(val) {
 export async function importFromExcel(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
         const data = new Uint8Array(e.target.result);
         const workbook = XLSX.read(data, { type: "array" });
         
         const counts = { households: 0, pregnant: 0, children: 0 };
         
-        // Load current data
-        let hhList = JSON.parse(localStorage.getItem(KEYS.households) || "[]");
-        let pwList = JSON.parse(localStorage.getItem(KEYS.pregnant) || "[]");
-        let chList = JSON.parse(localStorage.getItem(KEYS.children) || "[]");
+        // Load current data from Firestore
+        let hhList = await db.getHouseholds();
+        let pwList = await db.getPregnant();
+        let chList = await db.getChildren();
 
         workbook.SheetNames.forEach((sheetName, index) => {
           const ws = workbook.Sheets[sheetName];
@@ -268,13 +268,12 @@ export async function importFromExcel(file) {
           }
         });
 
-        // Save back to LS
-        localStorage.setItem(KEYS.households, JSON.stringify(hhList));
-        localStorage.setItem(KEYS.pregnant, JSON.stringify(pwList));
-        localStorage.setItem(KEYS.children, JSON.stringify(chList));
-
-        // Re-sync summaries
-        syncAllHouseholds();
+        // Save back to Firestore
+        await db.saveBulkData({
+          households: hhList,
+          pregnant: pwList,
+          children: chList
+        });
         
         resolve(counts);
       } catch (err) {

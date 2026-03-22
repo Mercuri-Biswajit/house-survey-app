@@ -498,6 +498,35 @@ export const db = {
     await deleteDoc(docRefs.recycleBin(String(_id)));
   },
 
+  saveBulkData: async ({ households, pregnant, children }) => {
+    if (!auth.currentUser) return;
+    const batch = writeBatch(firestore);
+
+    if (households) {
+      households.forEach((h) => {
+        const docId = String(h._internalId || h.id);
+        batch.set(docRefs.household(docId), h, { merge: true });
+      });
+    }
+
+    if (pregnant) {
+      pregnant.forEach((p) => {
+        const docId = String(p._id);
+        batch.set(docRefs.pregnant(docId), p, { merge: true });
+      });
+    }
+
+    if (children) {
+      children.forEach((c) => {
+        const docId = String(c._id);
+        batch.set(docRefs.child(docId), c, { merge: true });
+      });
+    }
+
+    await batch.commit();
+    await syncAllHouseholds();
+  },
+
   reset: async () => {
     // Only resetting local variables to avoid dangerous global resets
   },
