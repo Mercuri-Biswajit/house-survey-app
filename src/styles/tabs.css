@@ -2,6 +2,40 @@
   margin-bottom: 0 !important;
 }
 
+.info-banner {
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+}
+
+.info-banner.info-blue {
+  background: #eff6ff;
+  color: #1e40af;
+}
+
+.info-banner.info-teal {
+  background: #f0fdfa;
+  color: #0f766e;
+}
+
+.info-banner.info-purple {
+  background: #faf5ff;
+  color: #6d28d9;
+}
+
+.info-banner.info-amber {
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.info-banner.info-dim {
+  background: #f8fafc;
+  color: #475569;
+}
+
 /* ── Quick Stats Bar ─────────────────────────────────────────────────────── */
 .quick-stats-bar {
   display: grid;

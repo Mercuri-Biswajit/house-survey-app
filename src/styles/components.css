@@ -472,3 +472,27 @@
   margin-left: 8px;
   font-weight: 600;
 }
+
+.name-cell {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: var(--text3);
+}
+
+.btn-add.btn-red {
+  background: #dc2626;
+}
+
+.btn-add.btn-red:hover {
+  background: #b91c1c;
+}
+
+.btn-add.btn-red:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
