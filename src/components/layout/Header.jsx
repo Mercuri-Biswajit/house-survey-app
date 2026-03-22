@@ -47,7 +47,6 @@ export default function Header({
     await logout();
   }
 
-  // Get user initials for avatar
   function getInitials(displayName, email) {
     if (displayName) {
       const parts = displayName.trim().split(" ");
@@ -60,9 +59,13 @@ export default function Header({
 
   return (
     <header className={styles.topbar}>
+
+      {/* ── Left: toggle + page title ── */}
       <div className={styles.topbarLeft}>
-        <button className={styles.btnToggle} onClick={toggleSidebar} title="Toggle Sidebar">☰</button>
-        <div>
+        <button className={styles.btnToggle} onClick={toggleSidebar} title="Toggle Sidebar">
+          ☰
+        </button>
+        <div className={styles.titleWrap}>
           <h1 className={styles.pageTitle}>{currentLabel}</h1>
           <span className={styles.pageSubtitle}>
             {area.district} • {area.block} • {area.gp} • {area.village}
@@ -70,7 +73,7 @@ export default function Header({
         </div>
       </div>
 
-      {/* Global search */}
+      {/* ── Center: search ── */}
       <div className={styles.searchContainer}>
         <span className={styles.searchIcon}>🔍</span>
         <input
@@ -85,10 +88,18 @@ export default function Header({
         )}
       </div>
 
+      {/* ── Right: import / export / user ── */}
       <div className={styles.topbarRight}>
+
         {/* Import */}
         <div className={styles.importWrap}>
-          <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".xlsx" style={{ display: "none" }} />
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            accept=".xlsx"
+            style={{ display: "none" }}
+          />
           <button className={styles.btnImport} onClick={handleImportClick} disabled={isImporting}>
             {isImporting ? <span className={styles.spinner} /> : <span>⬆</span>}
             <span>Import</span>
@@ -98,7 +109,8 @@ export default function Header({
         {/* Export */}
         <div className={styles.exportWrap}>
           <button className={styles.btnExport} onClick={() => setExportMenu((v) => !v)}>
-            <span>⬇</span> Export
+            <span>⬇</span>
+            <span>Export</span>
           </button>
           {exportMenu && (
             <div className={styles.exportMenu} onMouseLeave={() => setExportMenu(false)}>
@@ -116,7 +128,7 @@ export default function Header({
           )}
         </div>
 
-        {/* ── User avatar + dropdown ── */}
+        {/* User avatar */}
         {user && (
           <div className={styles.userWrap}>
             <button
@@ -129,7 +141,6 @@ export default function Header({
                 : <span className={styles.avatarInitials}>{getInitials(user.displayName, user.email)}</span>
               }
             </button>
-
             {userMenu && (
               <div className={styles.userMenu} onMouseLeave={() => setUserMenu(false)}>
                 <div className={styles.userMenuHeader}>
